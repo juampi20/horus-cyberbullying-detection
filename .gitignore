@@ -1,6 +1,12 @@
 # Created by https://www.toptal.com/developers/gitignore/api/pycharm+all,python,venv
 # Edit at https://www.toptal.com/developers/gitignore?templates=pycharm+all,python,venv
 
+# Los archivos .pkl que se generen en el proyecto en la carpeta /models
+/models/*.pkl
+
+# Los archivos .csv que se generen en el proyecto en la carpeta /data
+/data/*.csv
+
 # Pycharm
 .idea
 
