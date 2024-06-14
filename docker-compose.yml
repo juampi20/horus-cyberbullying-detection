@@ -1,0 +1,26 @@
+version: '3.7'
+
+services:
+  fastapi:
+    container_name: fastapi
+    build: ./src_fastapi
+    ports:
+      - "8000:8000"
+    networks:
+      - deploy_network
+
+  streamlit:
+    container_name: streamlit
+    build: ./src_streamlit
+    depends_on:
+      - fastapi
+    ports:
+      - "8501:8501"
+    networks:
+      - deploy_network
+    environment:
+      - API_URL=http://fastapi:8000/
+
+networks:
+  deploy_network:
+    driver: bridge
