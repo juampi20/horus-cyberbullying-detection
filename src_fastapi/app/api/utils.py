@@ -16,9 +16,11 @@ def normalize(text: str) -> str:
     text = re.sub(r"RT", "", text)
     text = re.sub(r"\s+", " ", text)
     text = re.sub(r"[^a-zA-Z]", " ", text)
-    text = ' '.join(unidecode(word) for word in text.split())
-    text = ' '.join([word.text for word in nlp(text) if not (word.is_punct or word.is_stop or word.like_num)])
-    text = ' '.join([word.text for word in nlp(text) if len(word) > 2])
-    text = ' '.join([word.text for word in nlp(text) if len(set(word.text)) > 1])
-    text = ' '.join([word.lemma_ for word in nlp(text)])
+    text = " ".join(unidecode(word) for word in text.split())
+    text = " ".join(
+        [word.text for word in nlp(text) if not (word.is_punct or word.is_stop or word.like_num)]
+    )
+    text = " ".join([word.text for word in nlp(text) if len(word) > 2])
+    text = " ".join([word.text for word in nlp(text) if len(set(word.text)) > 1])
+    text = " ".join([word.lemma_ for word in nlp(text)])
     return text

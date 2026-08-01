@@ -6,7 +6,7 @@ from fastapi import APIRouter
 from joblib import load
 
 from .constants import MODELS_PATH
-from .schemas import Input, ClassResponse
+from .schemas import ClassResponse, Input
 from .utils import normalize
 
 classification_router = APIRouter()
@@ -16,15 +16,15 @@ classification_router = APIRouter()
 @classification_router.get("/info")
 async def get_models_info():
     models_info_path = os.path.join(MODELS_PATH, "models_results.csv")
-    models_info: dict[str: dict[str, Any]] = {}
-    with open(models_info_path, "r") as f:
+    models_info: dict[str, dict[str, Any]] = {}
+    with open(models_info_path) as f:
         for line in f.readlines()[1:]:
             model, precision, recall, f1, accuracy = line.strip().split(",")
             models_info[model] = {
                 "precision": float(precision),
                 "f1": float(f1),
                 "recall": float(recall),
-                "accuracy": float(accuracy)
+                "accuracy": float(accuracy),
             }
     return models_info
 
@@ -39,7 +39,4 @@ async def classify(item: Input) -> dict[str, str | Any]:
     prediction = model.predict([text_normalized])
     prediction = "Bullying" if prediction[0] == 1 else "Not Bullying"
     probability = model.predict_proba([text_normalized])
-    return {
-        "category": prediction,
-        "confidence": round(probability[0][1], 2)
-    }
+    return {"category": prediction, "confidence": round(probability[0][1], 2)}

@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
 
-from .api.config import settings, app_configs
+from .api.config import app_configs, settings
 from .api.router import classification_router
 
 app = FastAPI(**app_configs)
