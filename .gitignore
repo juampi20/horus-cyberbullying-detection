@@ -4,6 +4,19 @@
 # Local agent infrastructure (not part of the thesis)
 .atl/
 
+# CodeGraph local index (agent infrastructure)
+.codegraph/
+
+# macOS
+.DS_Store
+
+# Streamlit secrets (never versioned)
+.streamlit/secrets.toml
+
+# Environment variants (keep .env.example)
+.env.*
+!.env.example
+
 # Pycharm
 .idea
 
