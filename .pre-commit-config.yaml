@@ -1,0 +1,17 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.1
+    hooks:
+      - id: ruff
+        args: [--config, .code_quality/ruff.toml, --fix]
+      - id: ruff-format
+        args: [--config, .code_quality/ruff.toml]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '^(data|models)/'
+      - id: end-of-file-fixer
+        exclude: '^(data|models)/'
+      - id: check-yaml
+      - id: check-merge-conflict

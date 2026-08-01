@@ -1,0 +1,9 @@
+line-length = 100
+target-version = "py311"
+exclude = [".venv", ".git", "notebooks"]
+
+[lint]
+select = ["E", "F", "I", "UP", "B", "S"]
+
+[lint.isort]
+known-first-party = ["app"]
