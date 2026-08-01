@@ -8,27 +8,27 @@ y cada fase consume el artefacto que produce la anterior.
 
 ```
 notebooks/
-├── 1-data_00_preprocessing.ipynb      # Obtención y preprocesamiento de datos
-├── 2-exploration_02_eda.ipynb         # Análisis exploratorio (EDA)
-├── 4-feat_eng_01_features.ipynb       # Ingeniería de features
-└── 5-models_03_modeling.ipynb         # Modelado, evaluación y exportación
+├── 00_clean_text_with_spacy.ipynb     # Obtención y preprocesamiento de datos
+├── 01_explore_data.ipynb              # Análisis exploratorio (EDA)
+├── 02_build_tfidf_features.ipynb      # Ingeniería de features
+└── 03_train_compare_models.ipynb      # Modelado, evaluación y exportación
 ```
 
-### 1-data_00_preprocessing.ipynb
+### 00_clean_text_with_spacy.ipynb
 - Carga el dataset crudo, normaliza el texto (minúsculas, limpieza de ruido,
   lematización con spaCy) y exporta el dataset preprocesado a
   `data/02_intermediate/`.
 
-### 2-exploration_02_eda.ipynb
+### 01_explore_data.ipynb
 - Análisis exploratorio sobre el dataset preprocesado: distribución de clases,
   frecuencia de términos y estadísticas descriptivas.
 
-### 4-feat_eng_01_features.ipynb
+### 02_build_tfidf_features.ipynb
 - Vectorización TF-IDF y construcción de features referenciales para el análisis
   exploratorio. La vectorización productiva ocurre dentro del pipeline de
   modelado.
 
-### 5-models_03_modeling.ipynb
+### 03_train_compare_models.ipynb
 - Entrena los 9 clasificadores (pipeline `TfidfVectorizer + clasificador`),
   valida con CV (cv=5, F1), aplica el umbral de decisión de 0.5 y exporta los
   `.pkl` a `models/` y las métricas a `data/08_reporting/models_results.csv`.

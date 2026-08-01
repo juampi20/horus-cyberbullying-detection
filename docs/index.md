@@ -24,11 +24,11 @@ web con `Streamlit` (frontend) y `FastAPI` (backend).
 
 Las etapas se ejecutan en orden dentro de `notebooks/`:
 
-1. **Preprocesamiento** (`1-data_00_preprocessing.ipynb`) — limpieza y
+1. **Preprocesamiento** (`00_clean_text_with_spacy.ipynb`) — limpieza y
    normalización del texto.
-2. **EDA** (`2-exploration_02_eda.ipynb`) — análisis exploratorio de los datos.
-3. **Features** (`4-feat_eng_01_features.ipynb`) — vectorización TF-IDF.
-4. **Modelado** (`5-models_03_modeling.ipynb`) — entrenamiento, validación y
+2. **EDA** (`01_explore_data.ipynb`) — análisis exploratorio de los datos.
+3. **Features** (`02_build_tfidf_features.ipynb`) — vectorización TF-IDF.
+4. **Modelado** (`03_train_compare_models.ipynb`) — entrenamiento, validación y
    exportación de los 9 clasificadores.
 
 ## Deploy
