@@ -80,7 +80,10 @@ def main():
 
     models_dict: dict = apicall.model_list()
     models_df = pd.DataFrame(models_dict).T
-    models_df = models_df.sort_values(by="f1", ascending=False)
+    # Orden y recomendación por RECALL: decisión metodológica de la tesis.
+    # En un contexto de seguridad (detección de ciberacoso), omitir una agresión
+    # (falso negativo) es más crítico que marcar un mensaje neutral (falso positivo).
+    models_df = models_df.sort_values(by="recall", ascending=False)
     model_names = models_df.index.tolist()
 
     with st.expander("📊 Modelos Entrenados"):
@@ -105,8 +108,20 @@ def main():
 
     "### 📝 Clasificación de Texto"
 
-    # Recommended model: Neural Network
-    recommended_model = "Neural Network"
+    # Modelo recomendado: el de mayor RECALL según el CSV de resultados (expuesto por la API).
+    # La recomendación prioriza capturar la mayor cantidad de conductas ofensivas reales
+    # (mínimos falsos negativos), por lo que el orden ya viene por recall descendente.
+    # Si un modelo del CSV no tiene su .pkl disponible, se saltea y se toma el siguiente por recall.
+    available_models = []
+    for model_name in model_names:
+        pkl_path = os.path.join("models", f"{model_name.lower().replace(' ', '_')}.pkl")
+        # Si no hay directorio de modelos local (p. ej. en Docker), se confía en el listado del CSV
+        if os.path.isdir("models") and not os.path.isfile(pkl_path):
+            continue
+        available_models.append(model_name)
+    model_names = available_models or model_names
+
+    recommended_model = model_names[0]
     recommended_model_index = model_names.index(recommended_model)
     model_names[recommended_model_index] = f"{recommended_model} ❤️"
 

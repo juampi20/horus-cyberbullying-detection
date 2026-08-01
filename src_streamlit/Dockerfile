@@ -1,12 +1,15 @@
 FROM python:3.9-slim
 
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uv/bin/uv
+ENV PATH="/uv/bin:$PATH"
+
 RUN mkdir /src_streamlit
 
 COPY requirements.txt /src_streamlit
 
 WORKDIR /src_streamlit
 
-RUN pip install -r requirements.txt
+RUN uv pip install --system -r requirements.txt
 
 COPY . /src_streamlit
 
