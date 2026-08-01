@@ -14,7 +14,7 @@ web con `Streamlit` (frontend) y `FastAPI` (backend).
 | Ruta | Descripción |
 | ---- | ----------- |
 | `data/` | Datos organizados en capas (crudo, intermedio, reporte) |
-| `notebooks/` | Pipeline de investigación por fases (preprocesamiento, EDA, features, modelado) |
+| `notebooks/` | Pipeline de investigación por fases con prefijos de nombre |
 | `models/` | Modelos serializados (`.pkl`, versionados con Git LFS) |
 | `conf/config.yaml` | Parámetros del pipeline |
 | `src_fastapi/` | API de predicción (deploy) |
@@ -24,11 +24,12 @@ web con `Streamlit` (frontend) y `FastAPI` (backend).
 
 Las etapas se ejecutan en orden dentro de `notebooks/`:
 
-1. **Preprocesamiento** (`1-data`) — limpieza y normalización del texto.
-2. **EDA** (`2-exploration`) — análisis exploratorio de los datos.
-3. **Features** (`4-feat_eng`) — vectorización TF-IDF.
-4. **Modelado** (`5-models`) — entrenamiento, validación y exportación de los 9
-   clasificadores.
+1. **Preprocesamiento** (`1-data_00_preprocessing.ipynb`) — limpieza y
+   normalización del texto.
+2. **EDA** (`2-exploration_02_eda.ipynb`) — análisis exploratorio de los datos.
+3. **Features** (`4-feat_eng_01_features.ipynb`) — vectorización TF-IDF.
+4. **Modelado** (`5-models_03_modeling.ipynb`) — entrenamiento, validación y
+   exportación de los 9 clasificadores.
 
 ## Deploy
 
