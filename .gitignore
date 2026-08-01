@@ -4,6 +4,9 @@
 # Los archivos .csv que se generen en el proyecto en la carpeta /data
 /data/*.csv
 
+# Local agent infrastructure (not part of the thesis)
+.atl/
+
 # Pycharm
 .idea
 
