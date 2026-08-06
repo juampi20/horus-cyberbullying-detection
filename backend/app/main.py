@@ -32,4 +32,4 @@ app.include_router(classification_router, prefix="/api/v1/classification", tags=
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
-    # CLI: uvicorn src_fastapi.app.main:app --reload --port 8000
+    # CLI: uvicorn backend.app.main:app --reload --port 8000

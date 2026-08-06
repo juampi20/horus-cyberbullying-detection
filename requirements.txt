@@ -1,7 +1,7 @@
 # Entorno de desarrollo: notebooks del pipeline de investigación (00-01-02-03)
 #
 # Las versiones de scikit-learn, spacy, joblib, xgboost y unidecode están
-# ALINEADAS con src_fastapi/requirements.txt: así los .pkl regenerados por los
+# ALINEADAS con backend/requirements.txt: así los .pkl regenerados por los
 # notebooks cargan sin problemas en el deploy (joblib.load no es portable
 # entre versiones de scikit-learn).
 #

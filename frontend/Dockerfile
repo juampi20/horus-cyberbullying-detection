@@ -3,15 +3,15 @@ FROM python:3.9-slim
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uv/bin/uv
 ENV PATH="/uv/bin:$PATH"
 
-RUN mkdir /src_streamlit
+RUN mkdir /app
 
-COPY requirements.txt /src_streamlit
+COPY requirements.txt /app
 
-WORKDIR /src_streamlit
+WORKDIR /app
 
 RUN uv pip install --system -r requirements.txt
 
-COPY . /src_streamlit
+COPY . /app
 
 EXPOSE 8501
 

@@ -34,9 +34,9 @@ modeling:
     cv: 5
     scoring: f1
 
-  # Parámetros de los 9 modelos (extraídos del notebook 03_train_compare_models.ipynb).
+  # Parámetros de los 9 modelos (extraídos del notebook 03_train.ipynb).
   # Donde no se especifican, se usan los valores por defecto de scikit-learn 1.2.2
-  # y xgboost 2.0.3 (alineados con src_fastapi/requirements.txt).
+  # y xgboost 2.0.3 (alineados con backend/requirements.txt).
   models:
     logistic_regression:
       solver: lbfgs

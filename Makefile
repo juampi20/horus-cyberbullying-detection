@@ -10,16 +10,16 @@ init_env: ## Create .venv with uv (Python 3.11) and install requirements
 	uv pip install -r requirements.txt
 
 lint: ## Lint with ruff (E, F, I, UP, B, S)
-	uvx ruff check --config .code_quality/ruff.toml src_fastapi src_streamlit
+	uvx ruff check --config .code_quality/ruff.toml backend frontend
 
 format: ## Auto-format with ruff
-	uvx ruff format --config .code_quality/ruff.toml src_fastapi src_streamlit
+	uvx ruff format --config .code_quality/ruff.toml backend frontend
 
 check: lint ## Lint + verify formatting
-	uvx ruff format --check --config .code_quality/ruff.toml src_fastapi src_streamlit
+	uvx ruff format --check --config .code_quality/ruff.toml backend frontend
 
 types: ## Static type check with mypy
-	uvx mypy --config-file .code_quality/mypy.ini src_fastapi src_streamlit
+	uvx mypy --config-file .code_quality/mypy.ini backend frontend
 
 test: ## Run tests (placeholder - no tests configured yet)
 	@echo "No tests configured yet."

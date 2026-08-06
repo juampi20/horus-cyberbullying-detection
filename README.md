@@ -10,7 +10,7 @@ el backend.
 
 ```plaintext
 .
-├── src_fastapi/
+├── backend/
 │   ├── Dockerfile
 │   ├── requirements.txt
 │   ├── models/
@@ -23,7 +23,7 @@ el backend.
 │           ├── router.py
 │           ├── schemas.py
 │           └── utils.py
-├── src_streamlit/
+├── frontend/
 │   ├── Dockerfile
 │   ├── requirements.txt
 │   └── ui.py
@@ -48,7 +48,7 @@ version: '3.7'
 services:
   fastapi:
     container_name: fastapi
-    build: ./src_fastapi
+    build: ./backend
     ports:
       - "8000:8000"
     networks:
@@ -56,7 +56,7 @@ services:
 
   streamlit:
     container_name: streamlit
-    build: ./src_streamlit
+    build: ./frontend
     depends_on:
       - fastapi
     ports:
@@ -73,7 +73,7 @@ networks:
 
 ### Dependencias
 
-#### Backend (`src_fastapi/requirements.txt`)
+#### Backend (`backend/requirements.txt`)
 
 ```text
 fastapi==0.70.0
@@ -81,7 +81,7 @@ uvicorn==0.15.0
 spacy==3.2.0
 ```
 
-#### Frontend (`src_streamlit/requirements.txt`)
+#### Frontend (`frontend/requirements.txt`)
 
 ```text
 streamlit==1.35.0
