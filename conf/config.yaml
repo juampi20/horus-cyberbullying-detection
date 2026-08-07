@@ -4,9 +4,9 @@
 # El proyecto es bilingüe: rutas e identificadores en inglés, comentarios en español.
 
 paths:
-  raw: data/01_raw/cyberbullying.csv
-  preprocessed: data/02_intermediate/cyberbullying_preprocessed.csv
-  models_results: data/08_reporting/models_results.csv
+  raw: data/raw/cyberbullying.csv
+  preprocessed: data/processed/cyberbullying_preprocessed.csv
+  models_results: data/output/models_results.csv
   models_dir: models/
 
 preprocessing:
