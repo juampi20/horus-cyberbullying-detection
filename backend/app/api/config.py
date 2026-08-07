@@ -12,6 +12,9 @@ class Config(BaseSettings):
     APP_VERSION: str = "1"
     APP_DESCRIPTION: str = "Horus API for classification detection"
 
+    LOG_LEVEL: str = "INFO"
+    MODEL_TIMEOUT_SECONDS: float = 10.0
+
 
 settings: BaseSettings = Config()
 
