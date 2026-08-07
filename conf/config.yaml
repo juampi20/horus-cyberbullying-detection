@@ -34,7 +34,7 @@ modeling:
     cv: 5
     scoring: f1
 
-  # Parámetros de los 9 modelos (extraídos del notebook 03_train.ipynb).
+  # Parámetros de los 7 modelos (extraídos del notebook 03_train.ipynb).
   # Donde no se especifican, se usan los valores por defecto de scikit-learn 1.2.2
   # y xgboost 2.0.3 (alineados con backend/requirements.txt).
   models:
@@ -42,13 +42,9 @@ modeling:
       solver: lbfgs
       multi_class: multinomial
       max_iter: 1000
-    k_nearest_neighbors: {}
-    decision_tree: {}
+    multinomial_naive_bayes: {}
     svm_linear:
       kernel: linear
-      probability: true
-    svm_rbf:
-      kernel: rbf
       probability: true
     random_forest:
       random_state: 42
