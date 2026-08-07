@@ -17,10 +17,14 @@ def normalize(text: str) -> str:
     text = re.sub(r"\s+", " ", text)
     text = re.sub(r"[^a-zA-Z]", " ", text)
     text = " ".join(unidecode(word) for word in text.split())
-    text = " ".join(
-        [word.text for word in nlp(text) if not (word.is_punct or word.is_stop or word.like_num)]
+
+    # Una sola pasada de spaCy: filtro stopwords/punt/números, longitud>2, dedupe de chars
+    # (len(set)>1) y lematización en la misma iteración (equivale a las 4 pasadas previas).
+    doc = nlp(text)
+    return " ".join(
+        token.lemma_
+        for token in doc
+        if not (token.is_punct or token.is_stop or token.like_num)
+        and len(token.text) > 2
+        and len(set(token.text)) > 1
     )
-    text = " ".join([word.text for word in nlp(text) if len(word) > 2])
-    text = " ".join([word.text for word in nlp(text) if len(set(word.text)) > 1])
-    text = " ".join([word.lemma_ for word in nlp(text)])
-    return text
