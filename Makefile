@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help init_env lint format check test types
+.PHONY: help init_env lint format check test test-cov types
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -21,5 +21,8 @@ check: lint ## Lint + verify formatting
 types: ## Static type check with mypy
 	uvx mypy --config-file .code_quality/mypy.ini backend frontend
 
-test: ## Run tests (placeholder - no tests configured yet)
-	@echo "No tests configured yet."
+test: ## Run tests
+	pytest backend/tests/ -v
+
+test-cov: ## Run tests with coverage
+	pytest backend/tests/ -v --cov=backend/app --cov-report=term-missing

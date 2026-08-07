@@ -5,5 +5,8 @@ exclude = [".venv", ".git", "notebooks"]
 [lint]
 select = ["E", "F", "I", "UP", "B", "S"]
 
+[lint.per-file-ignores]
+"backend/tests/**" = ["S101"]
+
 [lint.isort]
 known-first-party = ["app"]
