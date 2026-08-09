@@ -2,8 +2,8 @@ import hashlib
 
 import pytest
 
-from app.api.constants import SUPPORTED_MODELS
 from app.api.models import ModelManager
+from app.core.constants import SUPPORTED_MODELS
 
 
 @pytest.fixture

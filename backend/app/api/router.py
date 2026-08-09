@@ -7,8 +7,8 @@ from deep_translator import GoogleTranslator
 from fastapi import APIRouter, Depends, HTTPException
 from starlette.concurrency import run_in_threadpool
 
-from .config import settings
-from .constants import METRICS_PATH
+from app.core.config import settings
+
 from .models import ModelManager, get_model_manager
 from .schemas import ClassResponse, HealthResponse, Input
 from .utils import normalize
@@ -24,7 +24,7 @@ ManagerDep = Annotated[ModelManager, Depends(get_model_manager)]
 @classification_router.get("/info")
 async def get_models_info() -> dict[str, dict[str, Any]]:
     try:
-        with open(METRICS_PATH) as f:
+        with open(settings.METRICS_PATH) as f:
             reader = csv.DictReader(f)
             models_info: dict[str, dict[str, Any]] = {}
             for row in reader:
@@ -36,7 +36,7 @@ async def get_models_info() -> dict[str, dict[str, Any]]:
                 }
     except FileNotFoundError as exc:
         raise HTTPException(
-            status_code=500, detail=f"Metrics file not found: {METRICS_PATH}"
+            status_code=500, detail=f"Metrics file not found: {settings.METRICS_PATH}"
         ) from exc
     return models_info
 

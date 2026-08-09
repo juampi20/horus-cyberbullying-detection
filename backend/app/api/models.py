@@ -4,7 +4,8 @@ import time
 
 import joblib
 
-from .constants import MODELS_PATH, SUPPORTED_MODELS
+from app.core.config import settings
+from app.core.constants import SUPPORTED_MODELS
 
 logger = logging.getLogger(__name__)
 
@@ -16,9 +17,9 @@ class ModelManager:
         self._models: dict[str, dict] = {}
 
     def load_models(self) -> None:
-        """Descubre todos los *.pkl en MODELS_PATH y los carga con joblib."""
+        """Descubre todos los *.pkl en MODELS_DIR y los carga con joblib."""
         self._models = {}
-        for pkl_path in sorted(MODELS_PATH.glob("*.pkl")):
+        for pkl_path in sorted(settings.MODELS_DIR.glob("*.pkl")):
             name = pkl_path.stem
             try:
                 model = joblib.load(pkl_path)

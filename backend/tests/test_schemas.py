@@ -1,8 +1,8 @@
 import pytest
 from pydantic import ValidationError
 
-from app.api.constants import SUPPORTED_MODELS
 from app.api.schemas import ClassResponse, HealthResponse, Input
+from app.core.constants import SUPPORTED_MODELS
 
 
 @pytest.mark.parametrize("model", SUPPORTED_MODELS)

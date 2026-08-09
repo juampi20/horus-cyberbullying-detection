@@ -7,7 +7,7 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
-from app.api.constants import SUPPORTED_MODELS  # noqa: E402
+from app.core.constants import SUPPORTED_MODELS  # noqa: E402
 
 
 class FakeModel:
@@ -35,7 +35,7 @@ def fake_joblib(monkeypatch):
 
 @pytest.fixture
 def fake_models_dir(tmp_path, monkeypatch, request):
-    """Crea *.pkl falsos en un tmp_path y lo apunta como MODELS_PATH.
+    """Crea *.pkl falsos en un tmp_path y lo apunta como MODELS_DIR.
 
     Se puede parametrizar con la lista de nombres de modelo a crear.
     """
@@ -45,7 +45,7 @@ def fake_models_dir(tmp_path, monkeypatch, request):
         names = SUPPORTED_MODELS
     for name in names:
         (tmp_path / f"{name}.pkl").write_bytes(b"fake-pickle-data")
-    monkeypatch.setattr("app.api.models.MODELS_PATH", tmp_path)
+    monkeypatch.setattr("app.core.config.settings.MODELS_DIR", tmp_path)
     return tmp_path
 
 
@@ -77,7 +77,7 @@ def client_without_xgboost(tmp_path, monkeypatch, fake_joblib):
     for name in SUPPORTED_MODELS:
         if name != "xgboost":
             (tmp_path / f"{name}.pkl").write_bytes(b"fake-pickle-data")
-    monkeypatch.setattr("app.api.models.MODELS_PATH", tmp_path)
+    monkeypatch.setattr("app.core.config.settings.MODELS_DIR", tmp_path)
 
     with TestClient(app) as test_client:
         yield test_client

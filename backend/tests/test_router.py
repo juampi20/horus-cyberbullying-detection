@@ -1,7 +1,7 @@
 import time
 
 from app.api import router as router_module
-from app.api.config import settings
+from app.core.config import settings
 
 PREDICT_URL = "/api/v1/classification/predict"
 
@@ -113,6 +113,6 @@ def test_info_ok(client):
 
 
 def test_info_missing_csv_500(client, monkeypatch):
-    monkeypatch.setattr(router_module, "METRICS_PATH", "/nonexistent/models_results.csv")
+    monkeypatch.setattr("app.core.config.settings.METRICS_PATH", "/nonexistent/models_results.csv")
     resp = client.get("/api/v1/classification/info")
     assert resp.status_code == 500
