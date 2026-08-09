@@ -6,6 +6,8 @@ services:
     build: ./backend
     ports:
       - "8000:8000"
+    volumes:
+      - ./models:/models
     networks:
       - deploy_network
 
