@@ -20,7 +20,7 @@ classification_router = APIRouter()
 ManagerDep = Annotated[ModelManager, Depends(get_model_manager)]
 
 
-# Get Models Info
+# Información de los modelos
 @classification_router.get("/info")
 async def get_models_info() -> dict[str, dict[str, Any]]:
     try:
@@ -51,7 +51,7 @@ async def classify(item: Input, manager: ManagerDep) -> ClassResponse:
     except TimeoutError:
         logger.error("Translation service timed out")
         raise HTTPException(
-            status_code=503, detail="Translation service timeout — try again"
+            status_code=503, detail="Translation service timeout, try again"
         ) from None
     except Exception:
         logger.exception("Translation service failed")
