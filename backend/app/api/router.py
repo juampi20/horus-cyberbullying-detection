@@ -25,7 +25,6 @@ MetricsDep = Annotated[MetricsService, Depends(get_metrics_service)]
 NormalizationDep = Annotated[NormalizationService, Depends(get_normalization_service)]
 
 
-# Información de los modelos
 @classification_router.get("/info")
 async def get_models_info(metrics: MetricsDep) -> dict[str, dict[str, float]]:
     try:

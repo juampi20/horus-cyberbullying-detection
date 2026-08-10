@@ -11,13 +11,12 @@ logger = logging.getLogger(__name__)
 
 
 class ModelManager:
-    """Carga y sirve los modelos .pkl; los modelos faltantes no crashean la carga."""
+    """Los modelos faltantes o corruptos no crashean la carga."""
 
     def __init__(self) -> None:
         self._models: dict[str, dict] = {}
 
     def load_models(self) -> None:
-        """Descubre todos los *.pkl en MODELS_DIR y los carga con joblib."""
         self._models = {}
         for pkl_path in sorted(settings.MODELS_DIR.glob("*.pkl")):
             name = pkl_path.stem

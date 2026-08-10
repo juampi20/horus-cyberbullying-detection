@@ -1,6 +1,5 @@
-"""Métricas de los modelos leídas desde un CSV. El servicio centraliza la
-lectura del archivo y el mapeo a dict; si el archivo falta o el CSV es
-inválido, lanza MetricsFileError y el router solo decide la respuesta HTTP.
+"""Centraliza la lectura del CSV; si falta o es inválido lanza MetricsFileError
+y el router solo decide la respuesta HTTP.
 """
 
 import csv

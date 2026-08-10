@@ -19,7 +19,6 @@ MODEL_NAME = Literal[
 assert set(get_args(MODEL_NAME)) == set(SUPPORTED_MODELS)  # noqa: S101
 
 
-# Modelo para recibir el input del usuario
 class Input(BaseModel):
     model: MODEL_NAME
     text: str = Field(..., max_length=500)
@@ -32,7 +31,6 @@ class Input(BaseModel):
         return value
 
 
-# Modelo para la respuesta del servicio de clasificación
 class ClassResponse(BaseModel):
     category: str
     confidence: float
@@ -40,7 +38,6 @@ class ClassResponse(BaseModel):
     model_version: str
 
 
-# Modelo para la respuesta del healthcheck
 class HealthResponse(BaseModel):
     status: str
     models_loaded: int

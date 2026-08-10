@@ -1,20 +1,4 @@
-"""Normalización de texto previa al modelado.
-
-Replica EXACTA del pipeline definido en notebooks/00_normalize.ipynb (celda de
-normalización): minúsculas -> html.unescape -> contracciones/slang/leetspeak ->
-regex (no-ASCII, emails, URLs, menciones, hashtags, RT, no-letras) -> unidecode
--> elongación -> filtro léxico (tokenizer mínimo) -> lematización (lemmatizer
-completo) -> marcado de negación.
-
-El orden no es arbitrario: la expansión de contracciones ocurre antes de la
-limpieza regex para que el `not` de "doesn't" sobreviva y dispare el marcado de
-negación, y la negación se marca sobre los lemas (no antes) para no romper la
-lematización.
-
-A diferencia del módulo viejo (app.api.utils), acá los pipelines de spaCy no se
-cargan al importar: viven en la instancia de NormalizationService y se cargan
-con load() cuando el app arranca (ver el lifespan en main.py).
-"""
+"""Normalización de texto previa al modelado. Ver notebooks/00_normalize.ipynb."""
 
 import html
 import re
@@ -220,13 +204,12 @@ def _clean(text: str) -> str:
 
 
 def _normalize_elongation(word: str) -> str:
-    """Contrae la elongación: sooooo -> so, noooo -> no."""
+    """sooooo -> so."""
     return re.sub(r"(.)\1{2,}", r"\1", word)
 
 
 def _keep_token(token: Token) -> bool:
-    """Mantiene un token si es útil. Las negaciones se conservan SIEMPRE,
-    aunque sean stopwords (not, no, never...)."""
+    """Las negaciones se conservan aunque sean stopwords de spaCy."""
     if token.text in NEGATION_WORDS:
         return True
     return (
@@ -237,7 +220,7 @@ def _keep_token(token: Token) -> bool:
 
 
 def _mark_negation(tokens: Iterable[str]) -> list[str]:
-    """Prefija not_ al token siguiente a una negación. not good -> not_good."""
+    """not good -> not_good."""
     out: list[str] = []
     negated = False
     for word in tokens:
@@ -252,12 +235,7 @@ def _mark_negation(tokens: Iterable[str]) -> list[str]:
 
 
 class NormalizationService:
-    """Limpia, filtra, lematiza y marca negaciones (paridad con el notebook 00).
-
-    Los pipelines de spaCy son estado de instancia y se cargan con load(); el
-    filtrado léxico usa un tokenizer mínimo (~8x más rápido, sin tagger/parser)
-    y la lematización un lemmatizer completo (disable=["ner"]).
-    """
+    """Limpia, filtra, lematiza y marca negaciones; los pipelines se cargan con load()."""
 
     def __init__(self) -> None:
         self._tokenizer: spacy.Language | None = None
@@ -265,7 +243,7 @@ class NormalizationService:
         self._loaded = False
 
     def load(self) -> None:
-        """Carga los pipelines de spaCy (idempotente, se usa en el lifespan)."""
+        """Idempotente; se llama desde el lifespan."""
         if self._loaded:
             return
         self._lemmatizer = spacy.load("en_core_web_sm", disable=["ner"])
@@ -280,7 +258,7 @@ class NormalizationService:
         return self._loaded
 
     def normalize(self, text: str) -> str:
-        """Normaliza un texto ya traducido; RuntimeError si no hubo load()."""
+        """RuntimeError si no hubo load()."""
         if not self.is_loaded:
             raise RuntimeError("NormalizationService not loaded")
         tokenizer = self._tokenizer

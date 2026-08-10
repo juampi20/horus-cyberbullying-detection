@@ -1,6 +1,5 @@
-"""Traducción a inglés como servicio: envuelve a deep_translator.GoogleTranslator
-y el timeout del entorno. El router no sabe nada de redes ni de esa
-configuración: solo ve TranslationService y sus excepciones tipadas.
+"""El router no sabe nada de redes ni de configuración: solo ve TranslationService
+y sus excepciones tipadas.
 """
 
 import asyncio
