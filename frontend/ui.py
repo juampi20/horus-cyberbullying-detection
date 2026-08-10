@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from collections import namedtuple
 from typing import Any
@@ -7,8 +8,10 @@ import pandas as pd
 import requests
 import streamlit as st
 
+logger = logging.getLogger(__name__)
 
-def color_bg(category):
+
+def color_bg(category: str) -> str:
     Color = namedtuple("Color", ["bg"])
     formatting = {
         "Bullying": Color(bg="#FF6347"),
@@ -36,7 +39,7 @@ class ApiCalls:
                 pass
         return False
 
-    def model_list(self) -> dict:
+    def model_list(self) -> dict[str, Any]:
         endpoint = self.url + "api/v1/classification/info"
         models = requests.get(url=endpoint, timeout=10)
 
@@ -44,10 +47,10 @@ class ApiCalls:
             try:
                 return json.loads(models.text)
             except json.JSONDecodeError:
-                print("Error: Response is not a valid JSON document")
+                logger.error("Response is not a valid JSON document")
                 return {}
         else:
-            print("Error: Response is empty")
+            logger.error("Response is empty")
             return {}
 
     def make_predict(self, model: str, text: str) -> dict[str, Any]:
@@ -116,9 +119,6 @@ def main():
 
     "### 📝 Clasificación de Texto"
 
-    # Modelo recomendado: el de mayor F1 según el CSV de resultados (expuesto por la API).
-    # La recomendación prioriza el equilibrio entre precisión y recall, por lo que el
-    # orden ya viene por f1 descendente.
     # Si un modelo del CSV no tiene su .pkl disponible, se saltea y se toma el siguiente por f1.
     available_models = []
     for model_name in model_names:
@@ -160,7 +160,6 @@ def main():
             st.error("Error: No se obtuvo respuesta del servidor")
             st.stop()
 
-        # Mostrar resultados
         "### 📗 Resultado:"
         st.markdown(
             f"El texto fue etiquetado como **{color_bg(result['category'])}** "
