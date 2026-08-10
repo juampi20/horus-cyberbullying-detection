@@ -13,6 +13,7 @@ from .api.router import classification_router
 from .api.schemas import HealthResponse
 from .core.config import app_configs, settings
 from .core.logging import correlation_id_ctx, setup_logging
+from .services.normalization import get_normalization_service
 
 setup_logging(settings.LOG_LEVEL)
 
@@ -21,6 +22,11 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    # spacy falla rápido si el modelo falta: conviene cargarlo primero
+    normalization_service = get_normalization_service()
+    normalization_service.load()
+    logger.info("NormalizationService ready")
+
     model_manager.load_models()
     app.state.model_manager = model_manager
     logger.info(

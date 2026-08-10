@@ -1,4 +1,4 @@
-"""Tests de paridad del pipeline de normalización (backend/app/api/utils.py).
+"""Tests de paridad del pipeline de normalización (app/services/normalization.py).
 
 Los casos de esperado replican los outputs guardados en la celda de smoke test
 de notebooks/00_normalize.ipynb: el backend debe producir EXACTAMENTE el mismo
@@ -7,7 +7,15 @@ resultado que el pipeline de entrenamiento.
 
 import pytest
 
-from app.api.utils import normalize
+from app.services.normalization import normalization_service
+
+# Los pipelines se cargan una sola vez por sesión de tests (load() es idempotente)
+normalization_service.load()
+
+
+def normalize(text: str) -> str:
+    return normalization_service.normalize(text)
+
 
 # Cada caso: (texto crudo, salida esperada del notebook)
 PARITY_CASES = [

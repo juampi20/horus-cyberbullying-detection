@@ -8,16 +8,17 @@ from fastapi import APIRouter, Depends, HTTPException
 from starlette.concurrency import run_in_threadpool
 
 from app.core.config import settings
+from app.services.normalization import NormalizationService, get_normalization_service
 
 from .models import ModelManager, get_model_manager
 from .schemas import ClassResponse, HealthResponse, Input
-from .utils import normalize
 
 logger = logging.getLogger(__name__)
 
 classification_router = APIRouter()
 
 ManagerDep = Annotated[ModelManager, Depends(get_model_manager)]
+NormalizationDep = Annotated[NormalizationService, Depends(get_normalization_service)]
 
 
 # Información de los modelos
@@ -42,7 +43,7 @@ async def get_models_info() -> dict[str, dict[str, Any]]:
 
 
 @classification_router.post("/predict", response_model=ClassResponse)
-async def classify(item: Input, manager: ManagerDep) -> ClassResponse:
+async def classify(item: Input, manager: ManagerDep, normalizer: NormalizationDep) -> ClassResponse:
     try:
         text_translated = await asyncio.wait_for(
             run_in_threadpool(GoogleTranslator(source="auto", target="en").translate, item.text),
@@ -57,7 +58,7 @@ async def classify(item: Input, manager: ManagerDep) -> ClassResponse:
         logger.exception("Translation service failed")
         raise HTTPException(status_code=503, detail="Translation service unavailable") from None
 
-    text_normalized = normalize(str(text_translated))
+    text_normalized = normalizer.normalize(str(text_translated))
 
     try:
         category, confidence, inference_time_ms, model_version = manager.predict(
