@@ -13,11 +13,12 @@ el backend.
 ├── backend/
 │   ├── Dockerfile
 │   ├── requirements.txt
-│   ├── models/
-│   │   └── models_results.csv
 │   └── app/
 │       ├── main.py
 │       └── api/
+│           ├── models/
+│           │   ├── models_results.csv
+│           │   └── *.pkl
 │           ├── config.py
 │           ├── constants.py
 │           ├── router.py

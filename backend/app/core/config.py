@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    MODELS_DIR: Path = Path(__file__).parents[3] / "models"
+    MODELS_DIR: Path = Path(__file__).parents[2] / "app" / "api" / "models"
     METRICS_PATH: Path = Path(__file__).parents[2] / "app" / "api" / "models" / "models_results.csv"
 
     CORS_ORIGINS: list[str] = ["*"]

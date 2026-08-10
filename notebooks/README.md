@@ -31,10 +31,10 @@ notebooks/
 ### 03_train.ipynb
 - Entrena los 7 clasificadores (pipeline `TfidfVectorizer + clasificador`),
   valida con CV (cv=5, F1), aplica el umbral de decisión de 0.5 y exporta los
-  `.pkl` a `models/` y las métricas a `data/output/models_results.csv`.
+  `.pkl` y las métricas a `backend/app/api/models/`.
 
 ## Convenciones
 
 - Las rutas de datos se escriben de forma relativa a cada notebook
-  (`../data/...`, `../models/...`).
+  (`../data/...`, `../backend/app/api/models/...`).
 - Los parámetros centrales del pipeline se documentan en `conf/config.yaml`.
