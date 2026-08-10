@@ -1,14 +1,16 @@
-import asyncio
-import csv
 import logging
-from typing import Annotated, Any
+from typing import Annotated
 
-from deep_translator import GoogleTranslator
 from fastapi import APIRouter, Depends, HTTPException
-from starlette.concurrency import run_in_threadpool
 
-from app.core.config import settings
+from app.services.metrics import MetricsFileError, MetricsService, get_metrics_service
 from app.services.normalization import NormalizationService, get_normalization_service
+from app.services.translation import (
+    TranslationError,
+    TranslationService,
+    TranslationTimeoutError,
+    get_translation_service,
+)
 
 from .models import ModelManager, get_model_manager
 from .schemas import ClassResponse, HealthResponse, Input
@@ -18,47 +20,39 @@ logger = logging.getLogger(__name__)
 classification_router = APIRouter()
 
 ManagerDep = Annotated[ModelManager, Depends(get_model_manager)]
+TranslationDep = Annotated[TranslationService, Depends(get_translation_service)]
+MetricsDep = Annotated[MetricsService, Depends(get_metrics_service)]
 NormalizationDep = Annotated[NormalizationService, Depends(get_normalization_service)]
 
 
 # Información de los modelos
 @classification_router.get("/info")
-async def get_models_info() -> dict[str, dict[str, Any]]:
+async def get_models_info(metrics: MetricsDep) -> dict[str, dict[str, float]]:
     try:
-        with open(settings.METRICS_PATH) as f:
-            reader = csv.DictReader(f)
-            models_info: dict[str, dict[str, Any]] = {}
-            for row in reader:
-                models_info[row["Model"]] = {
-                    "precision": float(row["Precision"]),
-                    "f1": float(row["F1"]),
-                    "recall": float(row["Recall"]),
-                    "accuracy": float(row["Accuracy"]),
-                }
-    except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=500, detail=f"Metrics file not found: {settings.METRICS_PATH}"
-        ) from exc
-    return models_info
+        return metrics.get_metrics()
+    except MetricsFileError as exc:
+        raise HTTPException(status_code=500, detail=f"Metrics file not found: {exc}") from None
 
 
 @classification_router.post("/predict", response_model=ClassResponse)
-async def classify(item: Input, manager: ManagerDep, normalizer: NormalizationDep) -> ClassResponse:
+async def classify(
+    item: Input,
+    manager: ManagerDep,
+    translator: TranslationDep,
+    normalizer: NormalizationDep,
+) -> ClassResponse:
     try:
-        text_translated = await asyncio.wait_for(
-            run_in_threadpool(GoogleTranslator(source="auto", target="en").translate, item.text),
-            timeout=settings.MODEL_TIMEOUT_SECONDS,
-        )
-    except TimeoutError:
+        text_translated = await translator.translate(item.text)
+    except TranslationTimeoutError:
         logger.error("Translation service timed out")
         raise HTTPException(
             status_code=503, detail="Translation service timeout, try again"
         ) from None
-    except Exception:
+    except TranslationError:
         logger.exception("Translation service failed")
         raise HTTPException(status_code=503, detail="Translation service unavailable") from None
 
-    text_normalized = normalizer.normalize(str(text_translated))
+    text_normalized = normalizer.normalize(text_translated)
 
     try:
         category, confidence, inference_time_ms, model_version = manager.predict(

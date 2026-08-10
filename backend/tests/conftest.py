@@ -51,9 +51,16 @@ def fake_models_dir(tmp_path, monkeypatch, request):
 
 @pytest.fixture(autouse=True)
 def mock_translator(monkeypatch):
-    """No toca red: GoogleTranslator queda mockeado en el módulo del router."""
+    """No toca red: el singleton de traducción usa un traductor fake."""
 
-    monkeypatch.setattr("app.api.router.GoogleTranslator", FakeGoogleTranslator)
+    from app.core.config import settings
+    from app.services.translation import TranslationService
+
+    fake = TranslationService(
+        translator_cls=FakeGoogleTranslator,
+        timeout=settings.MODEL_TIMEOUT_SECONDS,
+    )
+    monkeypatch.setattr("app.services.translation.translation_service", fake)
 
 
 @pytest.fixture

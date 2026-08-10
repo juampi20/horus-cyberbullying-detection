@@ -1,7 +1,8 @@
 import time
+from pathlib import Path
 
-from app.api import router as router_module
-from app.core.config import settings
+from app.services.metrics import metrics_service
+from app.services.translation import TranslationService
 
 PREDICT_URL = "/api/v1/classification/predict"
 
@@ -79,8 +80,10 @@ def test_predict_translation_timeout_503(client, monkeypatch):
             time.sleep(0.5)
             return "translated text"
 
-    monkeypatch.setattr(router_module, "GoogleTranslator", SlowTranslator)
-    monkeypatch.setattr(settings, "MODEL_TIMEOUT_SECONDS", 0.1)
+    monkeypatch.setattr(
+        "app.services.translation.translation_service",
+        TranslationService(translator_cls=SlowTranslator, timeout=0.1),
+    )
 
     resp = client.post(PREDICT_URL, json={"model": "xgboost", "text": "hello"})
     assert resp.status_code == 503
@@ -95,7 +98,10 @@ def test_predict_translation_unavailable_503(client, monkeypatch):
         def translate(self, text):
             raise RuntimeError("boom")
 
-    monkeypatch.setattr(router_module, "GoogleTranslator", FailingTranslator)
+    monkeypatch.setattr(
+        "app.services.translation.translation_service",
+        TranslationService(translator_cls=FailingTranslator, timeout=10.0),
+    )
 
     resp = client.post(PREDICT_URL, json={"model": "xgboost", "text": "hello"})
     assert resp.status_code == 503
@@ -113,6 +119,6 @@ def test_info_ok(client):
 
 
 def test_info_missing_csv_500(client, monkeypatch):
-    monkeypatch.setattr("app.core.config.settings.METRICS_PATH", "/nonexistent/models_results.csv")
+    monkeypatch.setattr(metrics_service, "_metrics_path", Path("/nonexistent/models_results.csv"))
     resp = client.get("/api/v1/classification/info")
     assert resp.status_code == 500
