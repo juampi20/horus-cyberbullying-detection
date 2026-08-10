@@ -58,7 +58,7 @@ SLANG = {
     "k": "ok",
     "ya": "you",
     "yall": "you all",
-    # Contracciones coloquiales
+    # Contracciones
     "gonna": "going to",
     "wanna": "want to",
     "gotta": "got to",
@@ -68,7 +68,7 @@ SLANG = {
     "kinda": "kind of",
     "sorta": "sort of",
     "dunno": "do not know",
-    # Abreviaturas de opinión (alimentan la negación: idk -> i do not know)
+    # Abreviaturas
     "idk": "i do not know",
     "idc": "i do not care",
     "ngl": "not going to lie",
@@ -95,8 +95,8 @@ SLANG = {
     "lol": "laugh out loud",
     "omg": "oh my god",
     "brb": "be right back",
-    # Chatspeak fonético: variantes escritas como suenan
-    "aint": "are not",  # alimenta la negación: aint funny -> not_funny
+    # Chatspeak
+    "aint": "are not",
     "da": "the",
     "dat": "that",
     "dis": "this",
@@ -116,9 +116,8 @@ SLANG = {
     "hbu": "how about you",
 }
 
-# Leetspeak real del dataset (b4 = before, h8 = hate)
+# Leetspeak (b4 = before, h8 = hate)
 LEET = {
-    # Frecuentes en este dataset (medido sobre 81k textos)
     "b4": "before",
     "2day": "today",
     "2nite": "tonight",
@@ -162,7 +161,6 @@ LEET = {
     "2come": "to come",
     "2show": "to show",
     "2bully": "to bully",
-    # Insultos ofuscados (críticos para cyberbullying)
     "n00b": "noob",
     "bl00d": "blood",
     "bl00dy": "bloody",
@@ -178,8 +176,7 @@ LEET = {
     "s0": "so",
 }
 
-# Palabras de negación que disparan el marking (not_good); se conservan aunque
-# spaCy las considere stopwords.
+# Palabras de negación; se conservan aunque spaCy las considere stopwords.
 NEGATION_WORDS: frozenset[str] = frozenset(
     {"no", "not", "never", "nobody", "nothing", "nowhere", "neither", "nor", "cannot"}
 )
