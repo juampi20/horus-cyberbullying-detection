@@ -22,16 +22,16 @@ class TranslationTimeoutError(TranslationError):
     """La traducción no terminó dentro del timeout configurado."""
 
 
-class _TranslatorProtocol(Protocol):
+class TranslatorProtocol(Protocol):
     def translate(self, text: str) -> str: ...
 
 
-class _TranslatorFactory(Protocol):
-    def __call__(self, source: str, target: str) -> _TranslatorProtocol: ...
+class TranslatorFactory(Protocol):
+    def __call__(self, source: str, target: str) -> TranslatorProtocol: ...
 
 
 class TranslationService:
-    def __init__(self, translator_cls: _TranslatorFactory, timeout: float) -> None:
+    def __init__(self, translator_cls: TranslatorFactory, timeout: float) -> None:
         self._translator_cls = translator_cls
         self._timeout = timeout
 
@@ -50,7 +50,7 @@ class TranslationService:
             raise TranslationError("Translation service failed") from exc
 
 
-# Singleton inyectado por el router via Depends; el timeout se fija al levantar
+# Singleton inyectado por el router vía Depends; el timeout se fija al levantar
 translation_service = TranslationService(
     translator_cls=GoogleTranslator,
     timeout=settings.MODEL_TIMEOUT_SECONDS,

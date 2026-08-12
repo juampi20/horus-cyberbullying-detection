@@ -5,6 +5,7 @@ from app.services.metrics import metrics_service
 from app.services.translation import TranslationService
 
 PREDICT_URL = "/api/v1/classification/predict"
+COMPARE_URL = "/api/v1/classification/compare"
 
 
 def test_healthcheck_healthy(client):
@@ -104,6 +105,79 @@ def test_predict_translation_unavailable_503(client, monkeypatch):
     )
 
     resp = client.post(PREDICT_URL, json={"model": "xgboost", "text": "hello"})
+    assert resp.status_code == 503
+    assert "unavailable" in resp.json()["detail"].lower()
+
+
+def test_compare_ok(client):
+    resp = client.post(COMPARE_URL, json={"text": "you are worthless"})
+    assert resp.status_code == 200
+    results = resp.json()["results"]
+    assert len(results) == 7
+    expected_keys = {
+        "model",
+        "category",
+        "confidence",
+        "inference_time_ms",
+        "model_version",
+    }
+    expected_models = {
+        "gradient_boosting",
+        "logistic_regression",
+        "multinomial_naive_bayes",
+        "neural_network",
+        "random_forest",
+        "support_vector_machine_(linear_kernel)",
+        "xgboost",
+    }
+    for result in results:
+        assert set(result.keys()) == expected_keys
+    assert {result["model"] for result in results} == expected_models
+
+
+def test_compare_text_too_long_422(client):
+    resp = client.post(COMPARE_URL, json={"text": "a" * 501})
+    assert resp.status_code == 422
+
+
+def test_compare_empty_text_422(client):
+    resp = client.post(COMPARE_URL, json={"text": ""})
+    assert resp.status_code == 422
+
+
+def test_compare_translation_timeout_503(client, monkeypatch):
+    class SlowTranslator:
+        def __init__(self, source="auto", target="en"):
+            pass
+
+        def translate(self, text):
+            time.sleep(0.5)
+            return "translated text"
+
+    monkeypatch.setattr(
+        "app.services.translation.translation_service",
+        TranslationService(translator_cls=SlowTranslator, timeout=0.1),
+    )
+
+    resp = client.post(COMPARE_URL, json={"text": "hello"})
+    assert resp.status_code == 503
+    assert "timeout" in resp.json()["detail"].lower()
+
+
+def test_compare_translation_unavailable_503(client, monkeypatch):
+    class FailingTranslator:
+        def __init__(self, source="auto", target="en"):
+            pass
+
+        def translate(self, text):
+            raise RuntimeError("boom")
+
+    monkeypatch.setattr(
+        "app.services.translation.translation_service",
+        TranslationService(translator_cls=FailingTranslator, timeout=10.0),
+    )
+
+    resp = client.post(COMPARE_URL, json={"text": "hello"})
     assert resp.status_code == 503
     assert "unavailable" in resp.json()["detail"].lower()
 

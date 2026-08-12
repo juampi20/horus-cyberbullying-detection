@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     APP_TITLE: str = "Horus API"
     APP_VERSION: str = "1"
-    APP_DESCRIPTION: str = "Horus API for classification detection"
+    APP_DESCRIPTION: str = "Horus API for cyberbullying classification"
 
     LOG_LEVEL: str = "INFO"
     MODEL_TIMEOUT_SECONDS: float = 10.0

@@ -38,6 +38,29 @@ class ClassResponse(BaseModel):
     model_version: str
 
 
+class CompareItem(BaseModel):
+    text: str = Field(..., max_length=500)
+
+    @field_validator("text")
+    @classmethod
+    def text_not_empty(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("text must not be empty")
+        return value
+
+
+class CompareResult(BaseModel):
+    model: str
+    category: str
+    confidence: float
+    inference_time_ms: float
+    model_version: str
+
+
+class CompareResponse(BaseModel):
+    results: list[CompareResult]
+
+
 class HealthResponse(BaseModel):
     status: str
     models_loaded: int

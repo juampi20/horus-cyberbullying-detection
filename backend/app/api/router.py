@@ -13,7 +13,14 @@ from app.services.translation import (
 )
 
 from .models import ModelManager, get_model_manager
-from .schemas import ClassResponse, HealthResponse, Input
+from .schemas import (
+    ClassResponse,
+    CompareItem,
+    CompareResponse,
+    CompareResult,
+    HealthResponse,
+    Input,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -25,21 +32,11 @@ MetricsDep = Annotated[MetricsService, Depends(get_metrics_service)]
 NormalizationDep = Annotated[NormalizationService, Depends(get_normalization_service)]
 
 
-@classification_router.get("/info")
-async def get_models_info(metrics: MetricsDep) -> dict[str, dict[str, float]]:
-    try:
-        return metrics.get_metrics()
-    except MetricsFileError as exc:
-        raise HTTPException(status_code=500, detail=f"Metrics file not found: {exc}") from None
-
-
-@classification_router.post("/predict", response_model=ClassResponse)
-async def classify(
-    item: Input,
-    manager: ManagerDep,
-    translator: TranslationDep,
-    normalizer: NormalizationDep,
-) -> ClassResponse:
+async def prepare_text(
+    item: Input | CompareItem,
+    translator: TranslationService,
+    normalizer: NormalizationService,
+) -> str:
     try:
         text_translated = await translator.translate(item.text)
     except TranslationTimeoutError:
@@ -51,7 +48,25 @@ async def classify(
         logger.exception("Translation service failed")
         raise HTTPException(status_code=503, detail="Translation service unavailable") from None
 
-    text_normalized = normalizer.normalize(text_translated)
+    return normalizer.normalize(text_translated)
+
+
+@classification_router.get("/info")
+async def get_models_info(metrics: MetricsDep) -> dict[str, dict[str, float]]:
+    try:
+        return metrics.get_metrics()
+    except MetricsFileError:
+        raise HTTPException(status_code=500, detail="Metrics file is unavailable") from None
+
+
+@classification_router.post("/predict", response_model=ClassResponse)
+async def classify(
+    item: Input,
+    manager: ManagerDep,
+    translator: TranslationDep,
+    normalizer: NormalizationDep,
+) -> ClassResponse:
+    text_normalized = await prepare_text(item, translator, normalizer)
 
     try:
         category, confidence, inference_time_ms, model_version = manager.predict(
@@ -67,6 +82,18 @@ async def classify(
         inference_time_ms=inference_time_ms,
         model_version=model_version,
     )
+
+
+@classification_router.post("/compare", response_model=CompareResponse)
+async def compare(
+    item: CompareItem,
+    manager: ManagerDep,
+    translator: TranslationDep,
+    normalizer: NormalizationDep,
+) -> CompareResponse:
+    text_normalized = await prepare_text(item, translator, normalizer)
+    results = [CompareResult(**result) for result in manager.predict_all(text_normalized)]
+    return CompareResponse(results=results)
 
 
 @classification_router.get("/healthcheck", response_model=HealthResponse)

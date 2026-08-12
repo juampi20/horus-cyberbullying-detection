@@ -5,7 +5,7 @@ import time
 import joblib
 
 from app.core.config import settings
-from app.core.constants import SUPPORTED_MODELS
+from app.core.constants import CATEGORY_BULLYING, CATEGORY_NOT_BULLYING, SUPPORTED_MODELS
 
 logger = logging.getLogger(__name__)
 
@@ -46,17 +46,36 @@ class ModelManager:
             raise KeyError(model_name)
         model = self._models[model_name]["model"]
         start = time.perf_counter()
-        pred = model.predict([text])
-        proba = model.predict_proba([text])
+        prediction = model.predict([text])
+        probabilities = model.predict_proba([text])
         end = time.perf_counter()
         inference_time_ms = (end - start) * 1000
-        category = "Bullying" if pred[0] == 1 else "Not Bullying"
-        confidence = round(float(proba[0][1]), 2)
+        category = CATEGORY_BULLYING if prediction[0] == 1 else CATEGORY_NOT_BULLYING
+        confidence = round(float(probabilities[0][1]), 2)
         version = self._models[model_name]["version"]
         return category, confidence, inference_time_ms, version
 
+    def predict_all(self, text: str) -> list[dict[str, object]]:
+        results = []
+        for name in sorted(self._models):
+            try:
+                category, confidence, inference_time_ms, version = self.predict(text, name)
+            except Exception:  # noqa: BLE001, S110 - un modelo que falle no debe tumbar el lote
+                logger.warning("Skipping failed model %s", name)
+                continue
+            results.append(
+                {
+                    "model": name,
+                    "category": category,
+                    "confidence": confidence,
+                    "inference_time_ms": inference_time_ms,
+                    "model_version": version,
+                }
+            )
+        return results
 
-# Singleton inyectado por el router via Depends y apuntado por el lifespan de main
+
+# Singleton inyectado por el router vía Depends y apuntado por el lifespan de main
 model_manager = ModelManager()
 
 

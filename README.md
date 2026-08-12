@@ -27,7 +27,11 @@ el backend.
 ├── frontend/
 │   ├── Dockerfile
 │   ├── requirements.txt
-│   └── ui.py
+│   ├── streamlit_app.py
+│   ├── api.py
+│   ├── consensus.py
+│   ├── presentation.py
+│   └── constants.py
 ├── docker-compose.yml
 └── README.md
 ```

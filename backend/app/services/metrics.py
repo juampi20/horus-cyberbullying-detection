@@ -21,8 +21,8 @@ class MetricsService:
 
     def get_metrics(self) -> dict[str, dict[str, float]]:
         try:
-            with open(self._metrics_path) as f:
-                reader = csv.DictReader(f)
+            with open(self._metrics_path) as metrics_file:
+                reader = csv.DictReader(metrics_file)
                 models_info: dict[str, dict[str, float]] = {}
                 for row in reader:
                     models_info[row["Model"]] = {
@@ -40,7 +40,7 @@ class MetricsService:
             raise MetricsFileError("invalid metrics file") from exc
 
 
-# Singleton inyectado por el router via Depends; la ruta se fija al levantar
+# Singleton inyectado por el router vía Depends; la ruta se fija al levantar
 metrics_service = MetricsService(metrics_path=settings.METRICS_PATH)
 
 
