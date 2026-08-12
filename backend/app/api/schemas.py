@@ -59,6 +59,7 @@ class CompareResult(BaseModel):
 
 class CompareResponse(BaseModel):
     results: list[CompareResult]
+    failed_models: list[str] = Field(default_factory=list)
 
 
 class HealthResponse(BaseModel):

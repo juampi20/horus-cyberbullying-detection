@@ -55,13 +55,15 @@ class ModelManager:
         version = self._models[model_name]["version"]
         return category, confidence, inference_time_ms, version
 
-    def predict_all(self, text: str) -> list[dict[str, object]]:
-        results = []
+    def predict_all(self, text: str) -> tuple[list[dict[str, object]], list[str]]:
+        results: list[dict[str, object]] = []
+        failed_models: list[str] = []
         for name in sorted(self._models):
             try:
                 category, confidence, inference_time_ms, version = self.predict(text, name)
             except Exception:  # noqa: BLE001, S110 - un modelo que falle no debe tumbar el lote
                 logger.warning("Skipping failed model %s", name)
+                failed_models.append(name)
                 continue
             results.append(
                 {
@@ -72,7 +74,7 @@ class ModelManager:
                     "model_version": version,
                 }
             )
-        return results
+        return results, failed_models
 
 
 # Singleton inyectado por el router vía Depends y apuntado por el lifespan de main

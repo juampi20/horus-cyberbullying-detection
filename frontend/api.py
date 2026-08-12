@@ -31,7 +31,11 @@ class ApiCalls:
 
     def model_list(self) -> dict[str, Any]:
         endpoint = self.url + "api/v1/classification/info"
-        models = requests.get(url=endpoint, timeout=10)
+        try:
+            models = requests.get(url=endpoint, timeout=10)
+        except requests.exceptions.RequestException:
+            logger.exception("Failed to fetch models from %s", endpoint)
+            return {}
 
         if models.text:
             try:

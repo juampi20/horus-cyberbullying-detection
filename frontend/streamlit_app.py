@@ -55,6 +55,14 @@ def render_classification_results(snapshot: dict[str, Any], models_df: pd.DataFr
     weighted_score = snapshot["weighted_score"]
     agreement_pct = snapshot["agreement_pct"]
 
+    failed_display_names = snapshot.get("failed_display_names") or []
+    if failed_display_names:
+        st.warning(
+            "Algunos modelos fallaron y no participaron del consenso: "
+            + ", ".join(failed_display_names)
+            + "."
+        )
+
     verdict = classify_consensus(weighted_score, margin=UNCERTAINTY_MARGIN)
 
     st.markdown(
@@ -298,6 +306,9 @@ def main() -> None:
 
     models_dict: dict = fetch_models(apicall.url)
     models_df = pd.DataFrame(models_dict).T
+    if models_df.empty:
+        st.error("Error: No se pudieron cargar las métricas de los modelos.")
+        st.stop()
     models_df = models_df.sort_values(by="f1", ascending=False)
 
     st.session_state.setdefault("example_index", 0)
@@ -323,6 +334,13 @@ def main() -> None:
 
         display_name_by_snake = {to_snake_case(name): name for name in models_df.index}
 
+        failed_models = response.get("failed_models") or []
+        failed_display_names = [
+            display_name_by_snake.get(name, name)
+            for name in failed_models
+            if name not in {result["model"] for result in results}
+        ]
+
         weights = f1_weights(
             {to_snake_case(name): float(f1) for name, f1 in models_df["f1"].items()}
         )
@@ -336,6 +354,7 @@ def main() -> None:
             "input_text": input_text,
             "results": results,
             "name_lookup": display_name_by_snake,
+            "failed_display_names": failed_display_names,
             "model_options": ["Consenso ponderado"] + model_names,
             "weighted_score": weighted_score,
             "agreement_pct": agreement_pct,

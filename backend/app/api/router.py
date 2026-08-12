@@ -92,8 +92,11 @@ async def compare(
     normalizer: NormalizationDep,
 ) -> CompareResponse:
     text_normalized = await prepare_text(item, translator, normalizer)
-    results = [CompareResult(**result) for result in manager.predict_all(text_normalized)]
-    return CompareResponse(results=results)
+    results, failed_models = manager.predict_all(text_normalized)
+    return CompareResponse(
+        results=[CompareResult(**result) for result in results],
+        failed_models=failed_models,
+    )
 
 
 @classification_router.get("/healthcheck", response_model=HealthResponse)

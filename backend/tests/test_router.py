@@ -112,7 +112,9 @@ def test_predict_translation_unavailable_503(client, monkeypatch):
 def test_compare_ok(client):
     resp = client.post(COMPARE_URL, json={"text": "you are worthless"})
     assert resp.status_code == 200
-    results = resp.json()["results"]
+    body = resp.json()
+    assert body["failed_models"] == []
+    results = body["results"]
     assert len(results) == 7
     expected_keys = {
         "model",
@@ -133,6 +135,24 @@ def test_compare_ok(client):
     for result in results:
         assert set(result.keys()) == expected_keys
     assert {result["model"] for result in results} == expected_models
+
+
+def test_compare_partial_failure(client, monkeypatch):
+    from app.api.models import model_manager
+
+    original_predict = model_manager.predict
+
+    def flaky_predict(text, model_name):
+        if model_name == "xgboost":
+            raise RuntimeError("boom")
+        return original_predict(text, model_name)
+
+    monkeypatch.setattr(model_manager, "predict", flaky_predict)
+    resp = client.post(COMPARE_URL, json={"text": "you are worthless"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert len(body["results"]) == 6
+    assert body["failed_models"] == ["xgboost"]
 
 
 def test_compare_text_too_long_422(client):
