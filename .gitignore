@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/pycharm+all,python,venv
 # Edit at https://www.toptal.com/developers/gitignore?templates=pycharm+all,python,venv
 
+# Raw dataset (tweets with third-party handles; download from Kaggle, see README)
+data/raw/
+
 # Local agent infrastructure (not part of the thesis)
 .atl/
 
