@@ -17,9 +17,8 @@ data/raw/*
 # Streamlit secrets (never versioned)
 .streamlit/secrets.toml
 
-# Environment variants (keep .env.example)
+# Environment variants
 .env.*
-!.env.example
 
 # Pycharm
 .idea

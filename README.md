@@ -106,8 +106,17 @@ make test
 
 ## Configuración
 
-El backend se configura por variables de entorno. Ver `.env.example` para la
-lista completa con valores por defecto.
+El backend y el frontend se configuran por variables de entorno. Todas tienen
+valores por defecto, así que el proyecto corre sin configuración adicional.
+
+| Variable | Default | Descripción |
+| -------- | ------- | ----------- |
+| `API_URL` | `http://localhost:8000/` | URL del backend que usa el frontend (la define docker-compose) |
+| `MODELS_DIR` | `backend/app/api/models` | Carpeta de los modelos serializados |
+| `METRICS_PATH` | `backend/app/api/models/models_results.csv` | Archivo de métricas |
+| `CORS_ORIGINS` | `["*"]` | Orígenes permitidos en el backend |
+| `LOG_LEVEL` | `INFO` | Nivel de logging |
+| `MODEL_TIMEOUT_SECONDS` | `10.0` | Timeout por predicción en segundos |
 
 ## Documentación
 
