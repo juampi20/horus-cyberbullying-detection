@@ -109,6 +109,11 @@ make test
 El backend se configura por variables de entorno. Ver `.env.example` para la
 lista completa con valores por defecto.
 
+## Documentación
+
+- `docs/mvp_scope_and_limitations.md` — alcance del MVP, justificación y
+  limitaciones (respaldo para la tesis).
+
 ## Licencia
 
 MIT. Ver [`LICENSE`](LICENSE).

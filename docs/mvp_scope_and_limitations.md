@@ -55,8 +55,8 @@ negativa.
 | 1 (bullying) | 60.98 % |
 | 0 (no bullying) | 39.02 % |
 
-**Implicación**: en estas condiciones la *accuracy* es una métrica engañosa —
-un clasificador trivial que siempre predijera la clase mayoritaria ya acertaría
+**Implicación**: en estas condiciones la *accuracy* es una métrica engañosa. Un
+clasificador trivial que siempre predijera la clase mayoritaria ya acertaría
 ~61 % de las veces. Por eso el entrenamiento adopta métricas orientadas al
 desbalance (ver sección 3). *(Concluido en `01_explore`, sección
 "Interpretación de los resultados del EDA".)*
@@ -157,7 +157,7 @@ mitigaciones derivadas de los hallazgos exploratorios:
   comportamiento de clasificación sea reproducible y auditable.
 
 Se entrenan **7 clasificadores** con pipeline `TfidfVectorizer + clasificador`.
-Resultados obtenidos (F1 sobre el conjunto de test, `data/output/
+Resultados obtenidos (F1 sobre el conjunto de test, `backend/app/api/models/
 models_results.csv`, y CV en `03_train`):
 
 | Modelo | Precision | Recall | F1 (test) |
@@ -219,26 +219,27 @@ salto** del proyecto pasa por modelos contextuales (sección 5).
 ## 5. Trabajo futuro
 
 El análisis de este documento define la agenda, priorizada por impacto:
-
-1. **Modelos contextuales (transformers)** — la línea de trabajo que el
+1. **Modelos contextuales (transformers).** La línea de trabajo que el
    paradigma léxico no puede cubrir (sección 4): representaciones dependientes
    del contexto (por ejemplo, arquitecturas tipo BERT y sus variantes
    eficientes para hardware limitado) para distinguir significado real de
    presencia de términos. Requiere evaluación de viabilidad computacional.
-2. **Mitigación del sesgo identitario (2.4)** — la prioridad ética: detección y
+2. **Mitigación del sesgo identitario (2.4).** La prioridad ética: detección y
    corrección del sesgo que asocia menciones de identidad con acoso, ya sea con
    datos balanceados, técnicas de *fairness* o supervisión explícita.
-3. **Re-balanceo de clases (2.1)** — evaluar *class weights*, sub/sobre-muestreo
+3. **Re-balanceo de clases (2.1).** Evaluar *class weights*, sub/sobre-muestreo
    o técnicas sintéticas manteniendo las métricas orientadas al desbalance ya
    adoptadas.
-4. **Control del sesgo por longitud (2.2)** — análisis de sensibilidad del
+4. **Control del sesgo por longitud (2.2).** Análisis de sensibilidad del
    modelo frente a la longitud y estrategias (normalización, features
    independientes de la extensión) para desacoplarla de la clase.
-5. **Léxico y datos (2.5)** — ampliación del corpus con discurso duro no
+5. **Léxico y datos (2.5).** Ampliación del corpus con discurso duro no
    abusivo y acoso implícito, para reducir falsos positivos y negativos.
-6. **Duplicados** — el 43.09 % de las filas comparten texto; una deduplicación
-   antes de particionar evitaría que un mismo mensaje aparezca en train y test
-   y sobreestime las métricas.
+6. **Duplicados.** El 43.09 % de las filas pertenece a un texto que se repite
+   (medido sobre `text_preprocessed`, contando todas las ocurrencias; los
+   duplicados exactos son el 26.6 %). Una deduplicación antes de particionar
+   evitaría que un mismo mensaje aparezca en train y test y sobreestime las
+   métricas.
 
 ---
 
@@ -249,6 +250,6 @@ desbalance (F1 + validación cruzada) y desplegable, dentro de las restricciones
 de tiempo y hardware del proyecto. Los sesgos documentados en este informe no se
 ocultan: se miden, se explican y se convierten en la hoja de ruta del trabajo
 futuro. En particular, el análisis de las limitaciones del enfoque TF-IDF
-fundamenta — con evidencia del propio dataset — por qué las soluciones léxicas
+fundamenta, con evidencia del propio dataset, por qué las soluciones léxicas
 basadas en frecuencia se quedan cortas frente a los modelos contextuales, que
 son la dirección natural de evolución del proyecto.
