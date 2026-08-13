@@ -24,32 +24,32 @@ orden. El deploy es solo la cara visible del pipeline.
 
 ### backend
 
-- `app/main.py` — bootstrap de la aplicación.
-- `app/core/` — configuración por variables de entorno, constantes y logging.
-- `app/api/` — endpoints, schemas y modelos serializados (`*.pkl`, Git LFS).
-- `app/services/` — métricas y consenso entre modelos, normalización y
+- `app/main.py`: bootstrap de la aplicación.
+- `app/core/`: configuración por variables de entorno, constantes y logging.
+- `app/api/`: endpoints, schemas y modelos serializados (`*.pkl`, Git LFS).
+- `app/services/`: métricas y consenso entre modelos, normalización y
   traducción del texto.
 
 ### frontend
 
-- `streamlit_app.py` — aplicación principal.
-- `api.py` — cliente HTTP hacia la API.
-- `consensus.py` — consenso entre modelos.
-- `presentation.py` — componentes de presentación.
-- `constants.py` — constantes de la UI.
+- `streamlit_app.py`: aplicación principal.
+- `api.py`: cliente HTTP hacia la API.
+- `consensus.py`: consenso entre modelos.
+- `presentation.py`: componentes de presentación.
+- `constants.py`: constantes de la UI.
 
 ## Investigación
 
 Los notebooks corren en orden, cada fase consume lo que produce la anterior:
 
-- `00_normalize` — carga el dataset crudo, normaliza el texto (minúsculas,
+- `00_normalize`: carga el dataset crudo, normaliza el texto (minúsculas,
   limpieza de ruido, lematización con spaCy) y exporta el dataset preprocesado
   a `data/processed/`.
-- `01_explore` — análisis exploratorio: distribución de clases, frecuencia de
+- `01_explore`: análisis exploratorio. Distribución de clases, frecuencia de
   términos y estadísticas descriptivas.
-- `02_features` — vectorización TF-IDF y features referenciales. La
+- `02_features`: vectorización TF-IDF y features referenciales. La
   vectorización productiva ocurre dentro del pipeline de modelado.
-- `03_train` — entrena los 7 clasificadores (pipeline `TfidfVectorizer` +
+- `03_train`: entrena los 7 clasificadores (pipeline `TfidfVectorizer` +
   clasificador), valida con CV (cv=5, F1), aplica el umbral de 0.5 y exporta
   los `.pkl` y métricas a `backend/app/api/models/`.
 
@@ -78,7 +78,7 @@ make up
 ```
 
 - Frontend (Streamlit): `http://localhost:8501`
-- Backend (FastAPI): `http://localhost:8000` — la raíz redirige a la
+- Backend (FastAPI): `http://localhost:8000`. La raíz redirige a la
   documentación interactiva del propio backend (Swagger UI).
 
 Comandos útiles: `make down` (detener), `make logs` (logs en vivo), `make ps`
@@ -111,4 +111,4 @@ lista completa con valores por defecto.
 
 ## Licencia
 
-MIT — ver [`LICENSE`](LICENSE).
+MIT. Ver [`LICENSE`](LICENSE).
