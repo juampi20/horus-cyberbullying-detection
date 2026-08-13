@@ -111,7 +111,7 @@ lista completa con valores por defecto.
 
 ## Documentación
 
-- `docs/mvp_scope_and_limitations.md` — alcance del MVP, justificación y
+- `docs/mvp_scope_and_limitations.md`: alcance del MVP, justificación y
   limitaciones (respaldo para la tesis).
 
 ## Licencia
