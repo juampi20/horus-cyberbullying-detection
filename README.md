@@ -16,7 +16,6 @@ orden. El deploy es solo la cara visible del pipeline.
 ├── frontend/         Aplicación web (Streamlit)
 ├── notebooks/        Pipeline de investigación
 ├── data/             Datos del pipeline
-├── conf/             Parámetros del pipeline
 ├── .code_quality/    Configuración de ruff y mypy
 ├── Makefile          Calidad de código, pruebas y deploy
 └── docker-compose.yml
@@ -53,7 +52,8 @@ Los notebooks corren en orden, cada fase consume lo que produce la anterior:
   clasificador), valida con CV (cv=5, F1), aplica el umbral de 0.5 y exporta
   los `.pkl` y métricas a `backend/app/api/models/`.
 
-Los parámetros centrales del pipeline se documentan en `conf/config.yaml`.
+Los parámetros del pipeline (CV=5, umbral 0.5, F1, modelos) están detallados en
+`docs/mvp_scope_and_limitations.md`.
 
 ## Dataset
 
