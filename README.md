@@ -73,6 +73,10 @@ Kaggle y ubicarlo como `data/raw/cyberbullying.csv` (81.417 filas, columnas
 
 ## Ejecución con Docker Compose
 
+Requisitos: Docker con el plugin Compose y [Git LFS](https://git-lfs.com)
+instalado (los modelos entrenados se versionan con LFS; sin él, el clon
+descargaría punteros rotos en vez de los archivos reales).
+
 ```sh
 make up
 ```
