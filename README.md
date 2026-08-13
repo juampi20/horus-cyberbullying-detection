@@ -1,12 +1,11 @@
-# Proyecto de Clasificación de Texto para Detección de Bullying
+# Detección de Cyberbullying en Texto
 
-Este proyecto consiste en una aplicación web que utiliza modelos de clasificación de texto para identificar si un texto
-es un caso de bullying o no. La aplicación está construida con `Streamlit` para la interfaz de usuario y `FastAPI` para
-el backend.
+Aplicación web que clasifica textos como bullying o no bullying usando modelos de
+aprendizaje automático. El frontend está construido con **Streamlit** y el backend
+con **FastAPI**, exponiendo un endpoint de predicción con consenso entre múltiples
+modelos.
 
-## Arquitectura del Proyecto
-
-### Estructura del Frontend & Backend
+## Arquitectura
 
 ```plaintext
 .
@@ -14,110 +13,96 @@ el backend.
 │   ├── Dockerfile
 │   ├── requirements.txt
 │   └── app/
-│       ├── main.py
-│       └── api/
-│           ├── models/
-│           │   ├── models_results.csv
-│           │   └── *.pkl
-│           ├── config.py
-│           ├── constants.py
-│           ├── router.py
-│           ├── schemas.py
-│           └── utils.py
+│       ├── main.py              # Bootstrap de la aplicación FastAPI
+│       ├── core/
+│       │   ├── config.py        # Configuración por variables de entorno
+│       │   ├── constants.py     # Constantes del dominio
+│       │   └── logging.py       # Configuración de logging
+│       ├── api/
+│       │   ├── router.py        # Endpoints de la API
+│       │   ├── schemas.py       # Schemas de request/response
+│       │   └── models/          # Modelos serializados (*.pkl, Git LFS)
+│       └── services/
+│           ├── metrics.py       # Cálculo de métricas y consenso
+│           ├── normalization.py # Normalización del texto
+│           └── translation.py   # Traducción del texto (para modelos multilingües)
 ├── frontend/
 │   ├── Dockerfile
 │   ├── requirements.txt
-│   ├── streamlit_app.py
-│   ├── api.py
-│   ├── consensus.py
-│   ├── presentation.py
-│   └── constants.py
+│   ├── streamlit_app.py         # Aplicación principal
+│   ├── api.py                   # Cliente HTTP hacia la API
+│   ├── consensus.py             # Lógica de consenso entre modelos
+│   ├── presentation.py          # Componentes de presentación
+│   └── constants.py             # Constantes de la UI
+├── notebooks/
+│   ├── 00_normalize.ipynb       # Normalización del dataset
+│   ├── 01_explore.ipynb         # Análisis exploratorio
+│   ├── 02_features.ipynb        # Ingeniería de features
+│   └── 03_train.ipynb           # Entrenamiento y evaluación de modelos
+├── data/
+│   ├── README.md                # Documentación del dataset y fuentes
+│   ├── processed/               # Datos preprocesados, versionados
+│   └── raw/                     # NO versionado — descargar de Kaggle (ver data/README.md)
+├── conf/
+│   └── config.yaml              # Configuración de calidad de código
+├── .code_quality/               # Configuración de ruff y mypy
+├── Makefile                     # Comandos de calidad y pruebas
 ├── docker-compose.yml
-└── README.md
+└── install.sh
 ```
 
-### Servicios
+## Dataset
 
-- **FastAPI**: Servicio backend que maneja las solicitudes de predicción y proporciona la API para la clasificación de
-  texto.
-- **Streamlit**: Servicio frontend que proporciona la interfaz de usuario para interactuar con el modelo de
-  clasificación.
+El dataset de entrenamiento proviene del corpus académico de detección de
+cyberbullying de Wang, Fu y Lu (2020), distribuido públicamente en Kaggle:
 
-### Configuración de Docker Compose
+- **Fuente académica**: J. Wang, K. Fu, C.T. Lu, "SOSNet: A Graph Convolutional
+  Network Approach to Fine-Grained Cyberbullying Detection", Proceedings of the
+  2020 IEEE International Conference on Big Data (IEEE BigData 2020).
+- **Versión pública**: [andrewmvd/cyberbullying-classification](https://www.kaggle.com/datasets/andrewmvd/cyberbullying-classification)
+  (licencia **CC BY 4.0**).
 
-El archivo `docker-compose.yml` define dos servicios: `fastapi` y `streamlit`.
+Los datos crudos (`data/raw/`) no se versionan en el repositorio: contienen
+tweets reales con handles de terceros. Para reproducir el pipeline, descargar el
+dataset de Kaggle y ubicarlo como `data/raw/cyberbullying.csv` (ver
+[`data/README.md`](data/README.md)).
 
-```yaml
-version: '3.7'
-
-services:
-  fastapi:
-    container_name: fastapi
-    build: ./backend
-    ports:
-      - "8000:8000"
-    networks:
-      - deploy_network
-
-  streamlit:
-    container_name: streamlit
-    build: ./frontend
-    depends_on:
-      - fastapi
-    ports:
-      - "8501:8501"
-    networks:
-      - deploy_network
-    environment:
-      - API_URL=http://fastapi:8000/
-
-networks:
-  deploy_network:
-    driver: bridge
-```
-
-### Dependencias
-
-#### Backend (`backend/requirements.txt`)
-
-```text
-fastapi==0.70.0
-uvicorn==0.15.0
-spacy==3.2.0
-```
-
-#### Frontend (`frontend/requirements.txt`)
-
-```text
-streamlit==1.35.0
-streamlit-extras==0.4.3
-requests==2.32.2
-```
-
-### Ejecución del Proyecto
-
-Para ejecutar el proyecto, asegúrate de tener Docker y Docker Compose instalados. Luego, ejecuta el siguiente comando en
-la raíz del proyecto:
+## Ejecución con Docker Compose
 
 ```sh
 docker-compose up --build
 ```
 
-Esto construirá y levantará los servicios `fastapi` y `streamlit`. La aplicación `Streamlit` estará disponible
-en `http://localhost:8501` y el backend `FastAPI` en `http://localhost:8000`.
+- Frontend (Streamlit): `http://localhost:8501`
+- Backend (FastAPI): `http://localhost:8000` — documentación interactiva en
+  `http://localhost:8000/docs`
 
-### Uso de la Aplicación
+## Uso de la Aplicación
 
-1. Abre tu navegador y ve a `http://localhost:8501`.
-2. Ingresa el texto que deseas clasificar en el área de texto proporcionada.
-3. Selecciona el modelo entrenado que deseas usar para la clasificación.
-4. Haz clic en el botón "Ejecutar" para obtener los resultados.
+1. Abre `http://localhost:8501`.
+2. Ingresa el texto a clasificar.
+3. Selecciona el modelo (o usa el consenso entre modelos).
+4. Ejecuta y observa la etiqueta predicha y la confianza.
 
 ### Interpretación de los Resultados
 
-- **Etiqueta**: Es la predicción del modelo. Puede ser "Bullying" o "Not Bullying".
-- **Confianza**: Es el grado de seguridad que tiene el modelo en su predicción, expresado en porcentaje. Por ejemplo,
-  una confianza de 80% significa que el modelo estima que hay un 80% de probabilidad de que su predicción sea correcta.
+- **Etiqueta**: predicción del modelo: `Bullying` o `Not Bullying`.
+- **Confianza**: grado de seguridad del modelo en su predicción, en porcentaje.
 
-El modelo utiliza un umbral de 50% para determinar la etiqueta. Si la confianza es mayor al 50%, el modelo predice "
-Bullying". Si es menor al 50%, predice "Not Bullying".
+## Desarrollo local
+
+```sh
+# Calidad de código y pruebas del backend
+make lint
+make mypy
+make test
+```
+
+## Configuración
+
+El backend se configura mediante variables de entorno. Ver `.env.example` para
+la lista completa con sus valores por defecto.
+
+## Licencia
+
+MIT — ver [`LICENSE`](LICENSE).
