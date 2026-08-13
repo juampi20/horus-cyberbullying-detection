@@ -18,9 +18,8 @@ orden. El deploy es solo la cara visible del pipeline.
 ├── data/             Datos del pipeline
 ├── conf/             Parámetros del pipeline
 ├── .code_quality/    Configuración de ruff y mypy
-├── Makefile          Calidad de código y pruebas
-├── docker-compose.yml
-└── install.sh
+├── Makefile          Calidad de código, pruebas y deploy
+└── docker-compose.yml
 ```
 
 ### backend
@@ -75,12 +74,15 @@ Kaggle y ubicarlo como `data/raw/cyberbullying.csv` (81.417 filas, columnas
 ## Ejecución con Docker Compose
 
 ```sh
-docker-compose up --build
+make up
 ```
 
 - Frontend (Streamlit): `http://localhost:8501`
 - Backend (FastAPI): `http://localhost:8000` — la raíz redirige a la
   documentación interactiva del propio backend (Swagger UI).
+
+Comandos útiles: `make down` (detener), `make logs` (logs en vivo), `make ps`
+(estado).
 
 ## Uso de la Aplicación
 
@@ -89,7 +91,7 @@ docker-compose up --build
 3. Ejecuta y mira el veredicto del consenso ponderado por F1 y la comparación
    entre los 7 modelos.
 
-- **Etiqueta**: veredicto del consenso: `Bullying`, `Not Bullying` o `Incierto`
+- **Etiqueta**: veredicto del consenso: `Bullying`, `No Bullying` o `Incierto`
   (banda de incertidumbre 45–55%).
 - **Confianza**: score ponderado de bullying y acuerdo entre modelos, en
   porcentaje.

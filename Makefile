@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help init_env lint format check test test-cov test-ui types
+.PHONY: help init_env lint format check test test-cov test-ui types up down logs ps
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -29,3 +29,15 @@ test-cov: ## Run tests with coverage
 
 test-ui: ## Run frontend unit tests
 	pytest frontend/tests/ -v
+
+up: ## Build and start services with Docker Compose
+	docker compose up --build -d
+
+down: ## Stop and remove services
+	docker compose down
+
+logs: ## Follow service logs
+	docker compose logs -f
+
+ps: ## Show service status
+	docker compose ps
