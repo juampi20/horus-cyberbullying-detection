@@ -5,6 +5,9 @@
 data/raw/*
 !data/raw/.gitkeep
 
+# Thesis documents (never versioned)
+*.docx
+
 # Local agent infrastructure (not part of the thesis)
 .atl/
 
