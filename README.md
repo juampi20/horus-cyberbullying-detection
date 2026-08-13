@@ -1,8 +1,8 @@
 # Horus — Detección de Cyberbullying con ML
 
 Proyecto de tesis de ingeniería informática. Clasifica texto como bullying o no
-bullying con machine learning, expone el mejor modelo en una API y muestra las
-predicciones en una aplicación web.
+bullying con machine learning, entrena 7 modelos, combina sus predicciones en un
+consenso ponderado por F1 y muestra el resultado en una aplicación web.
 
 Toda la investigación (análisis exploratorio, features, entrenamiento,
 evaluación) está en los notebooks de [`notebooks/`](notebooks/), ejecutables en
@@ -86,11 +86,13 @@ docker-compose up --build
 
 1. Abre `http://localhost:8501`.
 2. Ingresa el texto a clasificar.
-3. Selecciona el modelo (o el consenso entre modelos).
-4. Ejecuta y mira la etiqueta predicha y la confianza.
+3. Ejecuta y mira el veredicto del consenso ponderado por F1 y la comparación
+   entre los 7 modelos.
 
-- **Etiqueta**: predicción del modelo: `Bullying` o `Not Bullying`.
-- **Confianza**: grado de seguridad del modelo en su predicción, en porcentaje.
+- **Etiqueta**: veredicto del consenso: `Bullying`, `Not Bullying` o `Incierto`
+  (banda de incertidumbre 45–55%).
+- **Confianza**: score ponderado de bullying y acuerdo entre modelos, en
+  porcentaje.
 
 ## Desarrollo local
 
