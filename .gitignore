@@ -14,6 +14,12 @@ data/raw/*
 # CodeGraph local index (agent infrastructure)
 .codegraph/
 
+# Gentle AI local agent state (not part of the thesis)
+.pi/
+
+# Generated thesis figures (managed locally, like thesis documents)
+figures/
+
 # macOS
 .DS_Store
 
