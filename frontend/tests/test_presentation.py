@@ -141,8 +141,8 @@ def test_examples_has_12_items() -> None:
 
 
 def test_examples_include_uncertain_cases() -> None:
-    assert "Tenés razón en algo, pero sos un poco molesto." in EXAMPLES
-    assert "No entiendo por qué te enojás tanto por todo." in EXAMPLES
+    assert "Tenes razon en algo, pero sos un poco molesto." in EXAMPLES
+    assert "No entiendo por que te enojas tanto por todo." in EXAMPLES
 
 
 def test_examples_are_strings() -> None:

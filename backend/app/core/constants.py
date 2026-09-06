@@ -1,5 +1,5 @@
 # Nombres exactos de los paquetes de modelos .pkl que el pipeline espera.
-# Los paths NO viven acá: consultar core/config.py (MODELS_DIR, METRICS_PATH).
+# Los paths NO viven aca: consultar core/config.py (MODELS_DIR, METRICS_PATH).
 SUPPORTED_MODELS: tuple[str, ...] = (
     "gradient_boosting",
     "logistic_regression",
@@ -10,11 +10,11 @@ SUPPORTED_MODELS: tuple[str, ...] = (
     "xgboost",
 )
 
-# Categorías canónicas que emite el backend; el frontend las traduce a UI.
+# Categorias canonicas que emite el backend; el frontend las traduce a UI.
 CATEGORY_BULLYING: str = "Bullying"
 CATEGORY_NOT_BULLYING: str = "Not Bullying"
 
-# --- Normalización: expansión de contracciones ---
+# --- Normalizacion: expansion de contracciones ---
 CONTRACTIONS: dict[str, str] = {
     "don't": "do not",
     "dont": "do not",
@@ -53,7 +53,7 @@ CONTRACTIONS: dict[str, str] = {
     "there's": "there is",
 }
 
-# Slang de redes sociales -> forma canónica (u = you, idk = i do not know...)
+# Slang de redes sociales -> forma canonica (u = you, idk = i do not know...)
 SLANG: dict[str, str] = {
     # Pronombres/verbos abreviados
     "u": "you",
@@ -182,7 +182,7 @@ LEET: dict[str, str] = {
     "s0": "so",
 }
 
-# Palabras de negación; se conservan aunque spaCy las considere stopwords.
+# Palabras de negacion; se conservan aunque spaCy las considere stopwords.
 NEGATION_WORDS: frozenset[str] = frozenset(
     {"no", "not", "never", "nobody", "nothing", "nowhere", "neither", "nor", "cannot"}
 )

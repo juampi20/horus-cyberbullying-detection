@@ -51,7 +51,7 @@ def fake_models_dir(tmp_path, monkeypatch, request):
 
 @pytest.fixture(autouse=True)
 def mock_translator(monkeypatch):
-    """No toca red: el singleton de traducción usa un traductor fake."""
+    """No toca red: el singleton de traduccion usa un traductor fake."""
 
     from app.core.config import settings
     from app.services.translation import TranslationService
@@ -75,7 +75,7 @@ def client(fake_models_dir, fake_joblib):
 
 @pytest.fixture
 def client_without_xgboost(tmp_path, monkeypatch, fake_joblib):
-    """Client cuyo ModelManager cargó todos los modelos salvo xgboost."""
+    """Client cuyo ModelManager cargo todos los modelos salvo xgboost."""
 
     from starlette.testclient import TestClient
 

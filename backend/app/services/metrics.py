@@ -1,4 +1,4 @@
-"""Centraliza la lectura del CSV; si falta o es inválido lanza MetricsFileError
+"""Centraliza la lectura del CSV; si falta o es invalido lanza MetricsFileError
 y el router solo decide la respuesta HTTP.
 """
 
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class MetricsFileError(Exception):
-    """El archivo de métricas no existe o no se pudo parsear."""
+    """El archivo de metricas no existe o no se pudo parsear."""
 
 
 class MetricsService:
@@ -40,7 +40,7 @@ class MetricsService:
             raise MetricsFileError("invalid metrics file") from exc
 
 
-# Singleton inyectado por el router vía Depends; la ruta se fija al levantar
+# Singleton inyectado por el router via Depends; la ruta se fija al levantar
 metrics_service = MetricsService(metrics_path=settings.METRICS_PATH)
 
 

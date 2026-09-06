@@ -1,4 +1,4 @@
-"""Lógica de consenso pura para la clasificación de Horus."""
+"""Logica de consenso pura para la clasificacion de Horus."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from typing import Any
 
 from constants import UNCERTAINTY_MARGIN, WEIGHT_AMPLIFICATION
 
-# --- Lógica de consenso ---
+# --- Logica de consenso ---
 
 
 def f1_weights(
@@ -66,7 +66,7 @@ def classify_consensus(
     weighted_bullying_score: float,
     margin: float = UNCERTAINTY_MARGIN,
 ) -> str:
-    """Devuelve "Bullying", "Not Bullying" o "Uncertain" según el score ponderado."""
+    """Devuelve "Bullying", "Not Bullying" o "Uncertain" segun el score ponderado."""
     if weighted_bullying_score > 0.5 + margin:
         return "Bullying"
     if weighted_bullying_score < 0.5 - margin:

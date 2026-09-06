@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    # spacy falla rápido si el modelo falta: conviene cargarlo primero
+    # spacy falla rapido si el modelo falta: conviene cargarlo primero
     normalization_service = get_normalization_service()
     normalization_service.load()
     logger.info("NormalizationService ready")

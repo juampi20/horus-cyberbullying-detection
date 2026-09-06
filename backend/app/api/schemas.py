@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.core.constants import SUPPORTED_MODELS
 
-# mypy exige valores explícitos en Literal[...]; la lista se mantiene en sync con
+# mypy exige valores explicitos en Literal[...]; la lista se mantiene en sync con
 # core.constants.SUPPORTED_MODELS y se valida en runtime con el assert de abajo.
 MODEL_NAME = Literal[
     "gradient_boosting",

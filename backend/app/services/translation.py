@@ -1,4 +1,4 @@
-"""El router no sabe nada de redes ni de configuración: solo ve TranslationService
+"""El router no sabe nada de redes ni de configuracion: solo ve TranslationService
 y sus excepciones tipadas.
 """
 
@@ -15,11 +15,11 @@ logger = logging.getLogger(__name__)
 
 
 class TranslationError(Exception):
-    """Fallo inesperado durante la traducción (red, API, etc.)."""
+    """Fallo inesperado durante la traduccion (red, API, etc.)."""
 
 
 class TranslationTimeoutError(TranslationError):
-    """La traducción no terminó dentro del timeout configurado."""
+    """La traduccion no termino dentro del timeout configurado."""
 
 
 class TranslatorProtocol(Protocol):
@@ -50,7 +50,7 @@ class TranslationService:
             raise TranslationError("Translation service failed") from exc
 
 
-# Singleton inyectado por el router vía Depends; el timeout se fija al levantar
+# Singleton inyectado por el router via Depends; el timeout se fija al levantar
 translation_service = TranslationService(
     translator_cls=GoogleTranslator,
     timeout=settings.MODEL_TIMEOUT_SECONDS,

@@ -30,7 +30,7 @@ def test_input_whitespace_text_raises():
 @pytest.mark.parametrize(
     "model",
     [
-        "random forest",  # inválido: con espacio
+        "random forest",  # invalido: con espacio
         "does_not_exist",
         "Support Vector Machine (Linear Kernel)",
         "",

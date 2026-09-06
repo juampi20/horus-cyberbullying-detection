@@ -1,4 +1,4 @@
-"""Normalización de texto previa al modelado. Ver notebooks/00_normalize.ipynb."""
+"""Normalizacion de texto previa al modelado. Ver notebooks/00_normalize.ipynb."""
 
 import html
 import re

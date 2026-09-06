@@ -88,5 +88,5 @@ class ApiCalls:
 
 @st.cache_data(ttl=300, show_spinner=False)
 def fetch_models(api_url: str) -> dict[str, Any]:
-    """Consulta el catálogo de modelos al backend y lo cachea 5 minutos."""
+    """Consulta el catalogo de modelos al backend y lo cachea 5 minutos."""
     return ApiCalls(url=api_url).model_list()

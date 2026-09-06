@@ -1,7 +1,7 @@
 """Tests unitarios de la capa de servicios (app/services).
 
 Se testea cada servicio de forma aislada, con el I/O mockeado (traductor fake,
-CSV de tmp_path, pipelines de spaCy reales cuando el modelo está instalado).
+CSV de tmp_path, pipelines de spaCy reales cuando el modelo esta instalado).
 """
 
 import asyncio
@@ -110,7 +110,7 @@ def test_normalization_service_not_loaded_raises() -> None:
 
 @pytest.mark.skipif(
     not spacy.util.is_package("en_core_web_sm"),
-    reason="en_core_web_sm no está instalado en este entorno",
+    reason="en_core_web_sm no esta instalado en este entorno",
 )
 def test_normalization_service_load_and_normalize() -> None:
     service = NormalizationService()

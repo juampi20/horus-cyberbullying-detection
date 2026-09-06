@@ -77,7 +77,7 @@ class ModelManager:
         return results, failed_models
 
 
-# Singleton inyectado por el router vía Depends y apuntado por el lifespan de main
+# Singleton inyectado por el router via Depends y apuntado por el lifespan de main
 model_manager = ModelManager()
 
 

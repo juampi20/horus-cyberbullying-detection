@@ -1,14 +1,14 @@
-"""Constantes de configuración y datos demo compartidos por el frontend de Horus."""
+"""Constantes de configuracion y datos demo compartidos por el frontend de Horus."""
 
 from __future__ import annotations
 
-# --- Configuración del consenso ---
+# --- Configuracion del consenso ---
 
 UNCERTAINTY_MARGIN: float = 0.05
 
 WEIGHT_AMPLIFICATION: float = 5.0
 
-# --- Etiquetas de categorías para la UI ---
+# --- Etiquetas de categorias para la UI ---
 
 CATEGORY_LABELS: dict[str, str] = {
     "Bullying": "Bullying",
@@ -16,19 +16,19 @@ CATEGORY_LABELS: dict[str, str] = {
     "Uncertain": "Incierto",
 }
 
-# --- Textos de ejemplo para el botón de demostración ---
+# --- Textos de ejemplo para el boton de demostracion ---
 
 EXAMPLES: list[str] = [
-    "Andate de acá, nadie te aguanta, sos un pelotudo y no servís para nada.",
-    "Sos un estúpido e inútil, ojalá te pudieras borrar del mundo.",
-    "Sos un imbecil, no tenés dos dedos de frente y sos un desastre total.",
-    "Boludo de mierda, no servís ni para limpiar pisos, sos un inútil total.",
+    "Andate de aca, nadie te aguanta, sos un pelotudo y no servis para nada.",
+    "Sos un estupido e inutil, ojala te pudieras borrar del mundo.",
+    "Sos un imbecil, no tenes dos dedos de frente y sos un desastre total.",
+    "Boludo de mierda, no servis ni para limpiar pisos, sos un inutil total.",
     "Sos tan pelotudo que hasta los perros te evitan por la calle.",
     "Sos tan tonto que no te das cuenta de que todos te evitan.",
-    "Tenés razón en algo, pero sos un poco molesto.",
-    "No entiendo por qué te enojás tanto por todo.",
-    "Que tengas un lindo día, me encantó hablar con vos hoy.",
-    "Estoy de acuerdo con tu opinión, creo que es una buena idea.",
+    "Tenes razon en algo, pero sos un poco molesto.",
+    "No entiendo por que te enojas tanto por todo.",
+    "Que tengas un lindo dia, me encanto hablar con vos hoy.",
+    "Estoy de acuerdo con tu opinion, creo que es una buena idea.",
     "Gracias por tu ayuda, fue muy valioso tu aporte al equipo.",
-    "Hola, ¿cómo estás? Espero que tengas un buen fin de semana.",
+    "Hola, ¿como estas? Espero que tengas un buen fin de semana.",
 ]

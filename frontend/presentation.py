@@ -1,4 +1,4 @@
-"""Helpers de presentación puros para la UI de clasificación de Horus."""
+"""Helpers de presentacion puros para la UI de clasificacion de Horus."""
 
 from __future__ import annotations
 
@@ -7,16 +7,16 @@ from typing import Any
 
 from constants import CATEGORY_LABELS, UNCERTAINTY_MARGIN
 
-# --- Presentación en UI ---
+# --- Presentacion en UI ---
 
 
 def display_category(category: str) -> str:
-    """Devuelve la etiqueta de UI en español para una categoría canónica."""
+    """Devuelve la etiqueta de UI en español para una categoria canonica."""
     return CATEGORY_LABELS.get(category, category)
 
 
 def color_bg(category: str) -> str:
-    """Devuelve un tag HTML <mark> con color de fondo para la categoría dada."""
+    """Devuelve un tag HTML <mark> con color de fondo para la categoria dada."""
     Color = namedtuple("Color", ["bg"])
     formatting = {
         "Bullying": Color(bg="#FF6347"),
@@ -30,7 +30,7 @@ def color_bg(category: str) -> str:
 
 
 def metric_card(label: str, value: str) -> str:
-    """HTML de una tarjeta métrica: valor grande + etiqueta debajo."""
+    """HTML de una tarjeta metrica: valor grande + etiqueta debajo."""
     return (
         f'<div style="border:1px solid rgba(255,255,255,0.15); border-radius:8px;'
         f" padding:12px; text-align:center; background:rgba(255,255,255,0.04);"
@@ -42,7 +42,7 @@ def metric_card(label: str, value: str) -> str:
 
 
 def decision_rule_cards(margin: float = UNCERTAINTY_MARGIN) -> list[dict[str, str]]:
-    """Devuelve las tarjetas de la regla de decisión (etiqueta y rango) para la UI."""
+    """Devuelve las tarjetas de la regla de decision (etiqueta y rango) para la UI."""
     pct_low = (0.5 - margin) * 100
     pct_high = (0.5 + margin) * 100
     return [
