@@ -48,6 +48,9 @@ jobs:
         run: |
           uv venv .venv --python 3.9
           uv pip install --python .venv/bin/python -r requirements.txt
+          # The image ships pytest via requirements.txt; CI installs the runner
+          # itself so this job does not depend on the app requirements.
+          uv pip install --python .venv/bin/python "pytest==8.4.2"
       - name: Run frontend suite
         working-directory: frontend
         run: .venv/bin/python -m pytest tests -q
