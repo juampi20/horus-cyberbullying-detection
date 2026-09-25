@@ -1,0 +1,86 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Docker / compose
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Local secrets and environment files
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+
+# Python bytecode and build artifacts
+__pycache__/
+**/__pycache__/
+*.py[cod]
+**/*.py[cod]
+*$py.class
+**/*$py.class
+*.so
+**/*.so
+build/
+**/build/
+dist/
+**/dist/
+*.egg-info/
+**/*.egg-info/
+.eggs/
+**/.eggs/
+
+# Virtual environments
+.venv/
+**/.venv/
+venv/
+**/venv/
+env/
+**/env/
+ENV/
+**/ENV/
+
+# Test and tooling caches
+.pytest_cache/
+**/.pytest_cache/
+.mypy_cache/
+**/.mypy_cache/
+.ruff_cache/
+**/.ruff_cache/
+.coverage
+.coverage.*
+**/.coverage
+**/.coverage.*
+coverage.xml
+**/coverage.xml
+htmlcov/
+**/htmlcov/
+.tox/
+**/.tox/
+.nox/
+**/.nox/
+.hypothesis/
+**/.hypothesis/
+
+# Tests are not part of the runtime image
+tests/
+**/tests/
+
+# Editors and OS
+.vscode/
+**/.vscode/
+.idea/
+**/.idea/
+*.code-workspace
+**/*.code-workspace
+.DS_Store
+**/.DS_Store
+*.swp
+**/*.swp
+
+# Jupyter
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
