@@ -5,19 +5,18 @@
 data/raw/*
 !data/raw/.gitkeep
 
-# Thesis documents (never versioned)
-*.docx
-
-# Local agent infrastructure (not part of the thesis)
+# Local agent infrastructure
 .atl/
+odd/
+.pi-theme.json
 
 # CodeGraph local index (agent infrastructure)
 .codegraph/
 
-# Gentle AI local agent state (not part of the thesis)
+# Gentle AI local agent state
 .pi/
 
-# Generated thesis figures (managed locally, like thesis documents)
+# Generated figures (managed locally)
 figures/
 
 # macOS
