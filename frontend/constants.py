@@ -8,6 +8,10 @@ UNCERTAINTY_MARGIN: float = 0.05
 
 WEIGHT_AMPLIFICATION: float = 5.0
 
+# --- Cooldown del boton de clasificacion ---
+
+RUN_COOLDOWN_SECONDS: float = 1.0
+
 # --- Etiquetas de categorias para la UI ---
 
 CATEGORY_LABELS: dict[str, str] = {
@@ -18,17 +22,15 @@ CATEGORY_LABELS: dict[str, str] = {
 
 # --- Textos de ejemplo para el boton de demostracion ---
 
+# Veredictos verificados contra la API real: 3 No Bullying, 3 Incierto (45-55%), 3 Bullying.
 EXAMPLES: list[str] = [
-    "Andate de aca, nadie te aguanta, sos un pelotudo y no servis para nada.",
-    "Sos un estupido e inutil, ojala te pudieras borrar del mundo.",
-    "Sos un imbecil, no tenes dos dedos de frente y sos un desastre total.",
-    "Boludo de mierda, no servis ni para limpiar pisos, sos un inutil total.",
-    "Sos tan pelotudo que hasta los perros te evitan por la calle.",
-    "Sos tan tonto que no te das cuenta de que todos te evitan.",
-    "Tenes razon en algo, pero sos un poco molesto.",
+    "Espero que te mejores pronto, cuidate mucho.",
+    "Me alegro mucho por vos, te lo mereces.",
+    "Buen trabajo hoy, se nota el esfuerzo que le pusiste.",
     "No entiendo por que te enojas tanto por todo.",
-    "Que tengas un lindo dia, me encanto hablar con vos hoy.",
-    "Estoy de acuerdo con tu opinion, creo que es una buena idea.",
-    "Gracias por tu ayuda, fue muy valioso tu aporte al equipo.",
-    "Hola, ¿como estas? Espero que tengas un buen fin de semana.",
+    "Por que te pones mal cuando te corrigen.",
+    "Te tomas todo como una critica.",
+    "Sos un idiota, un desastre total.",
+    "Andate de aca que sos un pelotudo, no servis para nada.",
+    "Sos un estupido e inutil, ojala te fueras de aca.",
 ]
