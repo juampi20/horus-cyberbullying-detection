@@ -153,6 +153,36 @@ def test_compare_ok(client):
     assert {result["model"] for result in results} == expected_models
 
 
+def test_compare_used_fallback_true(client, monkeypatch):
+    class FailingTranslator:
+        def __init__(self, source="auto", target="en"):
+            pass
+
+        def translate(self, text):
+            raise RuntimeError("boom")
+
+    class StubTranslator:
+        def __init__(self, source="auto", target="en"):
+            pass
+
+        def translate(self, text):
+            return "translated text"
+
+    monkeypatch.setattr(
+        "app.services.translation.translation_service",
+        TranslationService(
+            translator_factories=[lambda: FailingTranslator(), lambda: StubTranslator()],
+            timeout=10.0,
+        ),
+    )
+
+    resp = client.post(COMPARE_URL, json={"text": "you are worthless"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["used_fallback"] is True
+    assert len(body["text_analyzed"]) > 0
+
+
 def test_compare_partial_failure(client, monkeypatch):
     from app.api.models import model_manager
 

@@ -18,7 +18,7 @@ from app.services.translation import (
     TranslationError,
     TranslationService,
     TranslationTimeoutError,
-    _build_translator_factories,
+    _deepl_factory,
 )
 
 VALID_CSV = (
@@ -83,6 +83,17 @@ class MyMemoryWarningTranslator:
 
 def _factory_of(translator_cls: type) -> callable:
     return lambda: translator_cls()
+
+
+def _factory_returning(text: str) -> callable:
+    class FixedResponseTranslator:
+        def __init__(self, source="auto", target="en"):
+            pass
+
+        def translate(self, inner_text: str) -> str:
+            return text
+
+    return _factory_of(FixedResponseTranslator)
 
 
 def test_translation_service_success() -> None:
@@ -161,18 +172,74 @@ def test_translation_all_providers_timeout_raises_timeout() -> None:
         asyncio.run(service.translate("hello"))
 
 
-def test_build_translator_factories_without_deepl_key(monkeypatch) -> None:
-    monkeypatch.setattr(settings, "DEEPL_API_KEY", "")
-    factories = _build_translator_factories()
-    names = [type(factory()).__name__ for factory in factories]
-    assert names == ["GoogleTranslator", "MyMemoryTranslator"]
-
-
-def test_build_translator_factories_with_deepl_key(monkeypatch) -> None:
+def test_deepl_provider_posts_to_official_api(monkeypatch) -> None:
     monkeypatch.setattr(settings, "DEEPL_API_KEY", "test-key")
-    factories = _build_translator_factories()
-    names = [type(factory()).__name__ for factory in factories]
-    assert names == ["DeeplApiTranslator", "GoogleTranslator", "MyMemoryTranslator"]
+    captured: dict = {}
+
+    class FakeResponse:
+        status_code = 200
+
+        def json(self) -> dict:
+            return {"translations": [{"text": "translated text"}]}
+
+    def fake_post(url, headers, json, timeout):
+        captured["url"] = url
+        captured["headers"] = headers
+        captured["json"] = json
+        return FakeResponse()
+
+    monkeypatch.setattr("app.services.translation.requests.post", fake_post)
+
+    translator = _deepl_factory()
+    assert translator.translate("hola") == "translated text"
+    assert captured["url"] == "https://api-free.deepl.com/v2/translate"
+    assert captured["headers"]["Authorization"] == "DeepL-Auth-Key test-key"
+
+
+def test_deepl_provider_non_200_raises_translation_error(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "DEEPL_API_KEY", "test-key")
+
+    class FakeResponse:
+        status_code = 403
+
+    def fake_post(url, headers, json, timeout):
+        return FakeResponse()
+
+    monkeypatch.setattr("app.services.translation.requests.post", fake_post)
+
+    translator = _deepl_factory()
+    with pytest.raises(TranslationError):
+        translator.translate("hola")
+
+
+def test_deepl_factory_without_key_raises_translation_error(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "DEEPL_API_KEY", "")
+    with pytest.raises(TranslationError):
+        _deepl_factory()
+
+
+@pytest.mark.parametrize(
+    "error_text",
+    [
+        "Sorry...",
+        "reCAPTCHA verification required",
+        "captcha verification required",
+        "You reached the daily limit",
+        "usage limit exceeded",
+        "NO MATCH",
+    ],
+)
+def test_translation_fallback_when_provider_returns_error_marker(error_text: str) -> None:
+    service = TranslationService(
+        translator_factories=[
+            _factory_returning(error_text),
+            _factory_of(StubTranslator),
+        ],
+        timeout=1.0,
+    )
+    result = asyncio.run(service.translate("hello"))
+    assert result.text == "translated hello"
+    assert result.used_fallback is True
 
 
 # --- MetricsService ---
