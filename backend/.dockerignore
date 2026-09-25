@@ -65,10 +65,6 @@ htmlcov/
 .hypothesis/
 **/.hypothesis/
 
-# Tests are not part of the runtime image
-tests/
-**/tests/
-
 # Editors and OS
 .vscode/
 **/.vscode/
