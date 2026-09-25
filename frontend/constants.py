@@ -20,6 +20,14 @@ CATEGORY_LABELS: dict[str, str] = {
     "Uncertain": "Incierto",
 }
 
+# --- Etiquetas de proveedores de traduccion para la UI ---
+
+TRANSLATION_PROVIDER_LABELS: dict[str, str] = {
+    "deepl": "DeepL",
+    "google": "Google",
+    "mymemory": "MyMemory",
+}
+
 # --- Textos de ejemplo para el boton de demostracion ---
 
 # Veredictos verificados contra la API real: 3 No Bullying, 3 Incierto (45-55%), 3 Bullying.

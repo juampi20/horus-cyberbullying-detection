@@ -37,7 +37,7 @@ async def prepare_text(
     item: Input | CompareItem,
     translator: TranslationService,
     normalizer: NormalizationService,
-) -> tuple[str, bool]:
+) -> tuple[str, bool, str]:
     try:
         result: TranslationResult = await translator.translate(item.text)
     except TranslationTimeoutError:
@@ -49,7 +49,7 @@ async def prepare_text(
         logger.exception("Translation service failed")
         raise HTTPException(status_code=503, detail="Translation service unavailable") from None
 
-    return normalizer.normalize(result.text), result.used_fallback
+    return normalizer.normalize(result.text), result.used_fallback, result.provider
 
 
 @classification_router.get("/info")
@@ -67,7 +67,9 @@ async def classify(
     translator: TranslationDep,
     normalizer: NormalizationDep,
 ) -> ClassResponse:
-    text_normalized, used_fallback = await prepare_text(item, translator, normalizer)
+    text_normalized, used_fallback, translation_provider = await prepare_text(
+        item, translator, normalizer
+    )
 
     try:
         category, confidence, inference_time_ms, model_version = manager.predict(
@@ -84,6 +86,7 @@ async def classify(
         model_version=model_version,
         text_analyzed=text_normalized,
         used_fallback=used_fallback,
+        translation_provider=translation_provider,
     )
 
 
@@ -94,13 +97,16 @@ async def compare(
     translator: TranslationDep,
     normalizer: NormalizationDep,
 ) -> CompareResponse:
-    text_normalized, used_fallback = await prepare_text(item, translator, normalizer)
+    text_normalized, used_fallback, translation_provider = await prepare_text(
+        item, translator, normalizer
+    )
     results, failed_models = manager.predict_all(text_normalized)
     return CompareResponse(
         results=[CompareResult(**result) for result in results],
         failed_models=failed_models,
         text_analyzed=text_normalized,
         used_fallback=used_fallback,
+        translation_provider=translation_provider,
     )
 
 

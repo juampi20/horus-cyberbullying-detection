@@ -38,6 +38,7 @@ class ClassResponse(BaseModel):
     model_version: str
     text_analyzed: str
     used_fallback: bool
+    translation_provider: str
 
 
 class CompareItem(BaseModel):
@@ -64,6 +65,7 @@ class CompareResponse(BaseModel):
     failed_models: list[str] = Field(default_factory=list)
     text_analyzed: str
     used_fallback: bool
+    translation_provider: str
 
 
 class HealthResponse(BaseModel):

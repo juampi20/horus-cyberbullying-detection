@@ -25,6 +25,7 @@ from presentation import (
     display_category,
     is_short_text,
     metric_card,
+    translation_caption,
 )
 
 
@@ -54,7 +55,7 @@ def render_classification_input() -> tuple[str, bool]:
         if used_fallback_last:
             warn_col.markdown(
                 '<div style="font-size:1.3rem; margin-top:0.45rem; text-align:center;" '
-                'title="Ultimo analisis con traduccion de respaldo (Google/MyMemory)">'
+                'title="Ultimo analisis con traduccion de respaldo, calidad variable">'
                 "&#9888;&#65039;</div>",
                 unsafe_allow_html=True,
             )
@@ -157,10 +158,12 @@ def render_classification_results(snapshot: dict[str, Any], models_df: pd.DataFr
             st.markdown(
                 f"**Traducido y normalizado (lo que recibio cada modelo):** `{text_analyzed}`"
             )
-            if snapshot.get("used_fallback"):
-                st.caption("Traduccion de respaldo (Google/MyMemory): calidad variable.")
-            else:
-                st.caption("Traduccion de DeepL.")
+            st.caption(
+                translation_caption(
+                    snapshot.get("translation_provider") or "",
+                    bool(snapshot.get("used_fallback")),
+                )
+            )
         else:
             st.caption("La API no devolvio el texto analizado.")
 
@@ -319,6 +322,7 @@ def main() -> None:
                 "input_text": input_text,
                 "text_analyzed": response.get("text_analyzed") or "",
                 "used_fallback": bool(response.get("used_fallback")),
+                "translation_provider": response.get("translation_provider") or "",
                 "results": results,
                 "name_lookup": display_name_by_snake,
                 "failed_display_names": failed_display_names,

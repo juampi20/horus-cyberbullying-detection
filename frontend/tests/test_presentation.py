@@ -9,6 +9,7 @@ from presentation import (
     display_category,
     is_short_text,
     metric_card,
+    translation_caption,
 )
 
 # ---------------------------------------------------------------------------
@@ -132,3 +133,38 @@ def test_metric_card_returns_div_html() -> None:
     assert "<div" in result
     assert "0.82" in result
     assert "F1" in result
+
+
+# ---------------------------------------------------------------------------
+# translation_caption
+# ---------------------------------------------------------------------------
+
+
+def test_translation_caption_deepl() -> None:
+    assert translation_caption("deepl", used_fallback=False) == "Traduccion de DeepL."
+
+
+def test_translation_caption_google_first_never_deepl() -> None:
+    caption = translation_caption("google", used_fallback=False)
+    assert "Google" in caption
+    assert "DeepL" not in caption
+
+
+def test_translation_caption_google_fallback_never_deepl() -> None:
+    caption = translation_caption("google", used_fallback=True)
+    assert "Google" in caption
+    assert "respaldo" in caption
+    assert "DeepL" not in caption
+
+
+def test_translation_caption_mymemory_fallback() -> None:
+    caption = translation_caption("mymemory", used_fallback=True)
+    assert "MyMemory" in caption
+    assert "respaldo" in caption
+    assert "DeepL" not in caption
+
+
+@pytest.mark.parametrize("provider", ["", "unknown", "yandex"])
+def test_translation_caption_unknown_provider_never_deepl(provider: str) -> None:
+    caption = translation_caption(provider, used_fallback=False)
+    assert "DeepL" not in caption
