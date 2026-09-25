@@ -52,11 +52,15 @@ def test_class_response_fields():
         confidence=0.85,
         inference_time_ms=12.3,
         model_version="abcdef12",
+        text_analyzed="you are an imbecile",
+        used_fallback=False,
     )
     assert resp.category == "Bullying"
     assert resp.confidence == 0.85
     assert resp.inference_time_ms == 12.3
     assert resp.model_version == "abcdef12"
+    assert resp.text_analyzed == "you are an imbecile"
+    assert resp.used_fallback is False
 
 
 def test_health_response_defaults():

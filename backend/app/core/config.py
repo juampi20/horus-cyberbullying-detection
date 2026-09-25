@@ -1,10 +1,16 @@
 from pathlib import Path
 from typing import Any
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
     MODELS_DIR: Path = Path(__file__).parents[2] / "app" / "api" / "models"
     METRICS_PATH: Path = Path(__file__).parents[2] / "app" / "api" / "models" / "models_results.csv"
 
@@ -17,7 +23,10 @@ class Settings(BaseSettings):
     APP_DESCRIPTION: str = "Horus API for cyberbullying classification"
 
     LOG_LEVEL: str = "INFO"
-    MODEL_TIMEOUT_SECONDS: float = 10.0
+    MODEL_TIMEOUT_SECONDS: float = 5.0
+    # DeepL API key (plan Free: 500k caracteres/mes). Si esta vacia, DeepL no
+    # se agrega como provider de traduccion y se usa solo Google + MyMemory.
+    DEEPL_API_KEY: str = ""
 
 
 settings: Settings = Settings()

@@ -57,7 +57,7 @@ def mock_translator(monkeypatch):
     from app.services.translation import TranslationService
 
     fake = TranslationService(
-        translator_cls=FakeGoogleTranslator,
+        translator_factories=[lambda: FakeGoogleTranslator()],
         timeout=settings.MODEL_TIMEOUT_SECONDS,
     )
     monkeypatch.setattr("app.services.translation.translation_service", fake)
