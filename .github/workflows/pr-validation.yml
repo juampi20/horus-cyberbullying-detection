@@ -1,0 +1,78 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  check-issue-reference:
+    name: Check Issue Reference
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require a Closes/Fixes/Resolves reference
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if ! printf '%s' "$PR_BODY" | grep -Eiq '(closes|fixes|resolves)[[:space:]]+#[0-9]+'; then
+            echo "::error::PR body must link an issue with 'Closes #N', 'Fixes #N' or 'Resolves #N'."
+            exit 1
+          fi
+
+  check-approved-issue:
+    name: Check Issue Has status:approved
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require status:approved on the linked issue
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          issue=$(printf '%s' "$PR_BODY" \
+            | grep -Eio '(closes|fixes|resolves)[[:space:]]+#[0-9]+' \
+            | head -n1 | grep -Eo '[0-9]+')
+          if [ -z "$issue" ]; then
+            echo "::error::No issue reference found in the PR body."
+            exit 1
+          fi
+          labels=$(gh api "repos/$REPO/issues/$issue" --jq '.labels[].name')
+          if ! printf '%s\n' "$labels" | grep -qx 'status:approved'; then
+            echo "::error::Issue #$issue must carry the status:approved label."
+            exit 1
+          fi
+
+  check-type-label:
+    name: Check PR Has type Label
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require exactly one type:* label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          count=$(gh api "repos/$REPO/issues/$PR/labels" \
+            --jq '[.[].name | select(startswith("type:"))] | length')
+          if [ "$count" != "1" ]; then
+            echo "::error::PR must have exactly one type:* label (found $count)."
+            exit 1
+          fi
+
+  check-branch-name:
+    name: Check Branch Name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate the head branch naming
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          if ! printf '%s' "$BRANCH" \
+            | grep -Eq '^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert)/[a-z0-9._-]+$'; then
+            echo "::error::Branch '$BRANCH' must match type/description (lowercase, a-z0-9._- only)."
+            exit 1
+          fi
