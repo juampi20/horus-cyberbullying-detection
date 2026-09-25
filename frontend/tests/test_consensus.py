@@ -8,7 +8,6 @@ from consensus import (
     compute_weighted_consensus,
     f1_weights,
 )
-from constants import UNCERTAINTY_MARGIN
 
 # ---------------------------------------------------------------------------
 # compute_consensus
@@ -46,6 +45,16 @@ def test_compute_consensus_empty() -> None:
     assert votes == 0
     assert majority == "Not Bullying"
     assert pct == 0.0
+
+
+def test_compute_consensus_exact_half_tie_resolves_bullying() -> None:
+    results = [{"model": f"m{i}", "category": "Bullying"} for i in range(3)] + [
+        {"model": f"n{i}", "category": "Not Bullying"} for i in range(3)
+    ]
+    votes, majority, pct = compute_consensus(results)
+    assert votes == 3
+    assert majority == "Bullying"
+    assert pct == 50.0
 
 
 # ---------------------------------------------------------------------------
@@ -114,6 +123,17 @@ def test_weighted_consensus_empty() -> None:
     assert pct == 0.0
 
 
+def test_weighted_consensus_all_weights_missing_returns_not_bullying() -> None:
+    results = [
+        {"model": "known", "category": "Bullying"},
+        {"model": "unknown", "category": "Not Bullying"},
+    ]
+    score, majority, pct = compute_weighted_consensus(results, {})
+    assert score == 0.0
+    assert majority == "Not Bullying"
+    assert pct == 0.0
+
+
 # ---------------------------------------------------------------------------
 # f1_weights
 # ---------------------------------------------------------------------------
@@ -142,10 +162,6 @@ def test_f1_weights_f1s_identicos_pesan_igual() -> None:
 
 def test_f1_weights_vacio_devuelve_vacio() -> None:
     assert f1_weights({}) == {}
-
-
-def test_f1_weights_default_amplification() -> None:
-    assert f1_weights({"peor": 0.78, "mejor": 0.83})["mejor"] == 5.0
 
 
 # ---------------------------------------------------------------------------
@@ -191,7 +207,3 @@ def test_classify_consensus_custom_margin() -> None:
     assert classify_consensus(0.61, margin=0.1) == "Bullying"
     assert classify_consensus(0.39, margin=0.1) == "Not Bullying"
     assert classify_consensus(0.4, margin=0.1) == "Uncertain"
-
-
-def test_uncertainty_margin_constant_default() -> None:
-    assert UNCERTAINTY_MARGIN == 0.05

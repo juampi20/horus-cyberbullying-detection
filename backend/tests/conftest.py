@@ -54,10 +54,12 @@ def mock_translator(monkeypatch):
     """No toca red: el singleton de traduccion usa un traductor fake."""
 
     from app.core.config import settings
-    from app.services.translation import TranslationService
+    from app.services.translation import TranslationProvider, TranslationService
 
     fake = TranslationService(
-        translator_factories=[lambda: FakeGoogleTranslator()],
+        translator_providers=[
+            TranslationProvider(name="google", factory=lambda: FakeGoogleTranslator())
+        ],
         timeout=settings.MODEL_TIMEOUT_SECONDS,
     )
     monkeypatch.setattr("app.services.translation.translation_service", fake)

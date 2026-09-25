@@ -28,9 +28,10 @@ class TranslationTimeoutError(TranslationError):
 class TranslationResult:
     """Traduccion final mas metadatos de confianza del pipeline."""
 
-    def __init__(self, text: str, used_fallback: bool) -> None:
+    def __init__(self, text: str, used_fallback: bool, provider: str) -> None:
         self.text = text
         self.used_fallback = used_fallback
+        self.provider = provider
 
 
 class TranslatorProtocol(Protocol):
@@ -38,6 +39,22 @@ class TranslatorProtocol(Protocol):
 
 
 TranslatorFactory = Callable[[], TranslatorProtocol]
+
+
+class TranslationProvider:
+    """Proveedor de traduccion con identidad estable para la UI.
+
+    El nombre es una clave publica ("deepl", "google", "mymemory"), nunca el
+    nombre de la clase: la UI no debe depender de detalles internos.
+    """
+
+    def __init__(self, name: str, factory: TranslatorFactory) -> None:
+        self.name = name
+        self._factory = factory
+
+    def __call__(self) -> TranslatorProtocol:
+        return self._factory()
+
 
 _ERROR_MARKERS = re.compile(
     r"Error\s+\d+.*(?:Server Error|That's an error|try again later)"
@@ -55,42 +72,44 @@ def _looks_like_error(text: str) -> bool:
 class TranslationService:
     def __init__(
         self,
-        translator_factories: list[TranslatorFactory],
+        translator_providers: list[TranslationProvider],
         timeout: float,
     ) -> None:
-        self._translator_factories = translator_factories
+        self._translator_providers = translator_providers
         self._timeout = timeout
 
     async def _try_translate(
-        self, factory: TranslatorFactory, text: str
+        self, provider: TranslationProvider, text: str
     ) -> tuple[str | None, str | None]:
-        translator = factory()
-        provider = type(translator).__name__
+        translator = provider()
         try:
             translated = await asyncio.wait_for(
                 run_in_threadpool(translator.translate, text),
                 timeout=self._timeout,
             )
         except TimeoutError:
-            logger.warning("Translation provider %s timed out", provider)
+            logger.warning("Translation provider %s timed out", provider.name)
             return None, "timeout"
         except Exception:
-            logger.exception("Translation provider %s raised an error", provider)
+            logger.exception("Translation provider %s raised an error", provider.name)
             return None, "error"
         if _looks_like_error(translated):
-            logger.warning("Translation provider %s returned a non-translation response", provider)
+            logger.warning(
+                "Translation provider %s returned a non-translation response", provider.name
+            )
             return None, "error"
-        logger.info("Translation provider %s successfully translated", provider)
+        logger.info("Translation provider %s successfully translated", provider.name)
         return translated, None
 
     async def translate(self, text: str) -> TranslationResult:
         saw_timeout = False
-        for index, factory in enumerate(self._translator_factories):
-            translated, failure = await self._try_translate(factory, text)
+        for index, provider in enumerate(self._translator_providers):
+            translated, failure = await self._try_translate(provider, text)
             if translated is not None:
                 return TranslationResult(
                     text=translated,
                     used_fallback=index > 0,
+                    provider=provider.name,
                 )
             saw_timeout = saw_timeout or failure == "timeout"
             logger.info("Trying next translation provider")
@@ -146,23 +165,23 @@ def _deepl_factory() -> TranslatorProtocol:
     return DeeplApiTranslator(api_key=settings.DEEPL_API_KEY)
 
 
-def _build_translator_factories() -> list[TranslatorFactory]:
+def _build_translator_providers() -> list[TranslationProvider]:
     """DeepL (si hay key) primero; Google y MyMemory como fallbacks de red.
 
     DeepL es la fuente primaria: API oficial, calidad superior y mas estable
     que los gratuitos. Google es el primer respaldo y MyMemory la ultima red.
     Sin key de DeepL se mantiene el comportamiento original (Google + MyMemory).
     """
-    factories: list[TranslatorFactory] = []
+    providers: list[TranslationProvider] = []
     if settings.DEEPL_API_KEY:
-        factories.append(_deepl_factory)
-    factories.append(_google_factory)
-    factories.append(_mymemory_factory)
-    return factories
+        providers.append(TranslationProvider("deepl", _deepl_factory))
+    providers.append(TranslationProvider("google", _google_factory))
+    providers.append(TranslationProvider("mymemory", _mymemory_factory))
+    return providers
 
 
 translation_service = TranslationService(
-    translator_factories=_build_translator_factories(),
+    translator_providers=_build_translator_providers(),
     timeout=settings.MODEL_TIMEOUT_SECONDS,
 )
 

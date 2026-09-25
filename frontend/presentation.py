@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import namedtuple
 from typing import Any
 
-from constants import CATEGORY_LABELS, UNCERTAINTY_MARGIN
+from constants import CATEGORY_LABELS, TRANSLATION_PROVIDER_LABELS, UNCERTAINTY_MARGIN
 
 # --- Presentacion en UI ---
 
@@ -13,6 +13,18 @@ from constants import CATEGORY_LABELS, UNCERTAINTY_MARGIN
 def display_category(category: str) -> str:
     """Devuelve la etiqueta de UI en español para una categoria canonica."""
     return CATEGORY_LABELS.get(category, category)
+
+
+def translation_caption(provider: str, used_fallback: bool) -> str:
+    """Devuelve el caption de traduccion con el proveedor real reportado.
+
+    Un proveedor desconocido o vacio degrada a una etiqueta neutral: nunca
+    asume DeepL.
+    """
+    label = TRANSLATION_PROVIDER_LABELS.get(provider, "un proveedor desconocido")
+    if used_fallback:
+        return f"Traduccion de respaldo via {label}: calidad variable."
+    return f"Traduccion de {label}."
 
 
 def color_bg(category: str) -> str:

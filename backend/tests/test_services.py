@@ -16,9 +16,11 @@ from app.services.metrics import MetricsFileError, MetricsService
 from app.services.normalization import NormalizationService
 from app.services.translation import (
     TranslationError,
+    TranslationProvider,
     TranslationService,
     TranslationTimeoutError,
-    _build_translator_factories,
+    TranslatorFactory,
+    _deepl_factory,
 )
 
 VALID_CSV = (
@@ -85,19 +87,50 @@ def _factory_of(translator_cls: type) -> callable:
     return lambda: translator_cls()
 
 
+def _factory_returning(text: str) -> callable:
+    class FixedResponseTranslator:
+        def __init__(self, source="auto", target="en"):
+            pass
+
+        def translate(self, inner_text: str) -> str:
+            return text
+
+    return _factory_of(FixedResponseTranslator)
+
+
+def _provider(name: str, factory: TranslatorFactory) -> TranslationProvider:
+    """Envuelve una factory con la identidad estable del proveedor."""
+    return TranslationProvider(name=name, factory=factory)
+
+
 def test_translation_service_success() -> None:
     service = TranslationService(
-        translator_factories=[_factory_of(StubTranslator)],
+        translator_providers=[_provider("stub", _factory_of(StubTranslator))],
         timeout=1.0,
     )
     result = asyncio.run(service.translate("hello"))
     assert result.text == "translated hello"
     assert result.used_fallback is False
+    assert result.provider == "stub"
+
+
+def test_translation_reports_google_when_google_is_first() -> None:
+    """Regresion: Google en el indice 0 se reporta como Google, nunca DeepL."""
+    service = TranslationService(
+        translator_providers=[
+            _provider("google", _factory_of(StubTranslator)),
+            _provider("mymemory", _factory_of(StubTranslator)),
+        ],
+        timeout=1.0,
+    )
+    result = asyncio.run(service.translate("hello"))
+    assert result.provider == "google"
+    assert result.used_fallback is False
 
 
 def test_translation_service_timeout() -> None:
     service = TranslationService(
-        translator_factories=[_factory_of(SlowTranslator)],
+        translator_providers=[_provider("stub", _factory_of(SlowTranslator))],
         timeout=0.1,
     )
     with pytest.raises(TranslationTimeoutError):
@@ -106,7 +139,7 @@ def test_translation_service_timeout() -> None:
 
 def test_translation_service_error() -> None:
     service = TranslationService(
-        translator_factories=[_factory_of(FailingTranslator)],
+        translator_providers=[_provider("stub", _factory_of(FailingTranslator))],
         timeout=1.0,
     )
     with pytest.raises(TranslationError):
@@ -115,37 +148,52 @@ def test_translation_service_error() -> None:
 
 def test_translation_fallback_when_first_fails() -> None:
     service = TranslationService(
-        translator_factories=[_factory_of(FailingTranslator), _factory_of(StubTranslator)],
+        translator_providers=[
+            _provider("deepl", _factory_of(FailingTranslator)),
+            _provider("google", _factory_of(StubTranslator)),
+        ],
         timeout=1.0,
     )
     result = asyncio.run(service.translate("hello"))
     assert result.text == "translated hello"
     assert result.used_fallback is True
+    assert result.provider == "google"
 
 
 def test_translation_fallback_when_first_returns_error_text() -> None:
     service = TranslationService(
-        translator_factories=[_factory_of(ErrorTextTranslator), _factory_of(StubTranslator)],
+        translator_providers=[
+            _provider("google", _factory_of(ErrorTextTranslator)),
+            _provider("mymemory", _factory_of(StubTranslator)),
+        ],
         timeout=1.0,
     )
     result = asyncio.run(service.translate("hello"))
     assert result.text == "translated hello"
     assert result.used_fallback is True
+    assert result.provider == "mymemory"
 
 
 def test_translation_fallback_when_first_returns_mymemory_warning() -> None:
     service = TranslationService(
-        translator_factories=[_factory_of(MyMemoryWarningTranslator), _factory_of(StubTranslator)],
+        translator_providers=[
+            _provider("mymemory", _factory_of(MyMemoryWarningTranslator)),
+            _provider("google", _factory_of(StubTranslator)),
+        ],
         timeout=1.0,
     )
     result = asyncio.run(service.translate("hello"))
     assert result.text == "translated hello"
     assert result.used_fallback is True
+    assert result.provider == "google"
 
 
 def test_translation_all_providers_fail() -> None:
     service = TranslationService(
-        translator_factories=[_factory_of(FailingTranslator), _factory_of(ErrorTextTranslator)],
+        translator_providers=[
+            _provider("google", _factory_of(FailingTranslator)),
+            _provider("mymemory", _factory_of(ErrorTextTranslator)),
+        ],
         timeout=1.0,
     )
     with pytest.raises(TranslationError):
@@ -154,25 +202,85 @@ def test_translation_all_providers_fail() -> None:
 
 def test_translation_all_providers_timeout_raises_timeout() -> None:
     service = TranslationService(
-        translator_factories=[_factory_of(SlowTranslator), _factory_of(SlowTranslator)],
+        translator_providers=[
+            _provider("google", _factory_of(SlowTranslator)),
+            _provider("mymemory", _factory_of(SlowTranslator)),
+        ],
         timeout=0.1,
     )
     with pytest.raises(TranslationTimeoutError):
         asyncio.run(service.translate("hello"))
 
 
-def test_build_translator_factories_without_deepl_key(monkeypatch) -> None:
-    monkeypatch.setattr(settings, "DEEPL_API_KEY", "")
-    factories = _build_translator_factories()
-    names = [type(factory()).__name__ for factory in factories]
-    assert names == ["GoogleTranslator", "MyMemoryTranslator"]
-
-
-def test_build_translator_factories_with_deepl_key(monkeypatch) -> None:
+def test_deepl_provider_posts_to_official_api(monkeypatch) -> None:
     monkeypatch.setattr(settings, "DEEPL_API_KEY", "test-key")
-    factories = _build_translator_factories()
-    names = [type(factory()).__name__ for factory in factories]
-    assert names == ["DeeplApiTranslator", "GoogleTranslator", "MyMemoryTranslator"]
+    captured: dict = {}
+
+    class FakeResponse:
+        status_code = 200
+
+        def json(self) -> dict:
+            return {"translations": [{"text": "translated text"}]}
+
+    def fake_post(url, headers, json, timeout):
+        captured["url"] = url
+        captured["headers"] = headers
+        captured["json"] = json
+        return FakeResponse()
+
+    monkeypatch.setattr("app.services.translation.requests.post", fake_post)
+
+    translator = _deepl_factory()
+    assert translator.translate("hola") == "translated text"
+    assert captured["url"] == "https://api-free.deepl.com/v2/translate"
+    assert captured["headers"]["Authorization"] == "DeepL-Auth-Key test-key"
+
+
+def test_deepl_provider_non_200_raises_translation_error(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "DEEPL_API_KEY", "test-key")
+
+    class FakeResponse:
+        status_code = 403
+
+    def fake_post(url, headers, json, timeout):
+        return FakeResponse()
+
+    monkeypatch.setattr("app.services.translation.requests.post", fake_post)
+
+    translator = _deepl_factory()
+    with pytest.raises(TranslationError):
+        translator.translate("hola")
+
+
+def test_deepl_factory_without_key_raises_translation_error(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "DEEPL_API_KEY", "")
+    with pytest.raises(TranslationError):
+        _deepl_factory()
+
+
+@pytest.mark.parametrize(
+    "error_text",
+    [
+        "Sorry...",
+        "reCAPTCHA verification required",
+        "captcha verification required",
+        "You reached the daily limit",
+        "usage limit exceeded",
+        "NO MATCH",
+    ],
+)
+def test_translation_fallback_when_provider_returns_error_marker(error_text: str) -> None:
+    service = TranslationService(
+        translator_providers=[
+            _provider("google", _factory_returning(error_text)),
+            _provider("mymemory", _factory_of(StubTranslator)),
+        ],
+        timeout=1.0,
+    )
+    result = asyncio.run(service.translate("hello"))
+    assert result.text == "translated hello"
+    assert result.used_fallback is True
+    assert result.provider == "mymemory"
 
 
 # --- MetricsService ---

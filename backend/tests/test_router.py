@@ -2,7 +2,7 @@ import time
 from pathlib import Path
 
 from app.services.metrics import metrics_service
-from app.services.translation import TranslationService
+from app.services.translation import TranslationProvider, TranslationService
 
 PREDICT_URL = "/api/v1/classification/predict"
 COMPARE_URL = "/api/v1/classification/compare"
@@ -34,6 +34,7 @@ def test_predict_valid(client):
         "model_version",
         "text_analyzed",
         "used_fallback",
+        "translation_provider",
     }
     assert data["category"] == "Bullying"
     assert data["confidence"] == 0.85
@@ -41,6 +42,7 @@ def test_predict_valid(client):
     assert len(data["model_version"]) == 8
     assert len(data["text_analyzed"]) > 0
     assert data["used_fallback"] is False
+    assert data["translation_provider"] == "google"
 
 
 def test_predict_not_bullying(client, monkeypatch):
@@ -93,7 +95,9 @@ def test_predict_translation_timeout_503(client, monkeypatch):
     monkeypatch.setattr(
         "app.services.translation.translation_service",
         TranslationService(
-            translator_factories=[lambda: SlowTranslator()],
+            translator_providers=[
+                TranslationProvider(name="google", factory=lambda: SlowTranslator())
+            ],
             timeout=0.1,
         ),
     )
@@ -114,7 +118,9 @@ def test_predict_translation_unavailable_503(client, monkeypatch):
     monkeypatch.setattr(
         "app.services.translation.translation_service",
         TranslationService(
-            translator_factories=[lambda: FailingTranslator()],
+            translator_providers=[
+                TranslationProvider(name="google", factory=lambda: FailingTranslator())
+            ],
             timeout=10.0,
         ),
     )
@@ -130,6 +136,7 @@ def test_compare_ok(client):
     body = resp.json()
     assert body["failed_models"] == []
     assert len(body["text_analyzed"]) > 0
+    assert body["translation_provider"] == "google"
     results = body["results"]
     assert len(results) == 7
     only_in_compare = (
@@ -151,6 +158,40 @@ def test_compare_ok(client):
     for result in results:
         assert set(result.keys()) == set(only_in_compare)
     assert {result["model"] for result in results} == expected_models
+
+
+def test_compare_used_fallback_true(client, monkeypatch):
+    class FailingTranslator:
+        def __init__(self, source="auto", target="en"):
+            pass
+
+        def translate(self, text):
+            raise RuntimeError("boom")
+
+    class StubTranslator:
+        def __init__(self, source="auto", target="en"):
+            pass
+
+        def translate(self, text):
+            return "translated text"
+
+    monkeypatch.setattr(
+        "app.services.translation.translation_service",
+        TranslationService(
+            translator_providers=[
+                TranslationProvider(name="deepl", factory=lambda: FailingTranslator()),
+                TranslationProvider(name="google", factory=lambda: StubTranslator()),
+            ],
+            timeout=10.0,
+        ),
+    )
+
+    resp = client.post(COMPARE_URL, json={"text": "you are worthless"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["used_fallback"] is True
+    assert body["translation_provider"] == "google"
+    assert len(body["text_analyzed"]) > 0
 
 
 def test_compare_partial_failure(client, monkeypatch):
@@ -193,7 +234,9 @@ def test_compare_translation_timeout_503(client, monkeypatch):
     monkeypatch.setattr(
         "app.services.translation.translation_service",
         TranslationService(
-            translator_factories=[lambda: SlowTranslator()],
+            translator_providers=[
+                TranslationProvider(name="google", factory=lambda: SlowTranslator())
+            ],
             timeout=0.1,
         ),
     )
@@ -214,7 +257,9 @@ def test_compare_translation_unavailable_503(client, monkeypatch):
     monkeypatch.setattr(
         "app.services.translation.translation_service",
         TranslationService(
-            translator_factories=[lambda: FailingTranslator()],
+            translator_providers=[
+                TranslationProvider(name="google", factory=lambda: FailingTranslator())
+            ],
             timeout=10.0,
         ),
     )
