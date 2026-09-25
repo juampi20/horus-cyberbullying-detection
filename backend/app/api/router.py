@@ -7,6 +7,7 @@ from app.services.metrics import MetricsFileError, MetricsService, get_metrics_s
 from app.services.normalization import NormalizationService, get_normalization_service
 from app.services.translation import (
     TranslationError,
+    TranslationResult,
     TranslationService,
     TranslationTimeoutError,
     get_translation_service,
@@ -36,9 +37,9 @@ async def prepare_text(
     item: Input | CompareItem,
     translator: TranslationService,
     normalizer: NormalizationService,
-) -> str:
+) -> tuple[str, bool]:
     try:
-        text_translated = await translator.translate(item.text)
+        result: TranslationResult = await translator.translate(item.text)
     except TranslationTimeoutError:
         logger.error("Translation service timed out")
         raise HTTPException(
@@ -48,7 +49,7 @@ async def prepare_text(
         logger.exception("Translation service failed")
         raise HTTPException(status_code=503, detail="Translation service unavailable") from None
 
-    return normalizer.normalize(text_translated)
+    return normalizer.normalize(result.text), result.used_fallback
 
 
 @classification_router.get("/info")
@@ -66,7 +67,7 @@ async def classify(
     translator: TranslationDep,
     normalizer: NormalizationDep,
 ) -> ClassResponse:
-    text_normalized = await prepare_text(item, translator, normalizer)
+    text_normalized, used_fallback = await prepare_text(item, translator, normalizer)
 
     try:
         category, confidence, inference_time_ms, model_version = manager.predict(
@@ -81,6 +82,8 @@ async def classify(
         confidence=confidence,
         inference_time_ms=inference_time_ms,
         model_version=model_version,
+        text_analyzed=text_normalized,
+        used_fallback=used_fallback,
     )
 
 
@@ -91,11 +94,13 @@ async def compare(
     translator: TranslationDep,
     normalizer: NormalizationDep,
 ) -> CompareResponse:
-    text_normalized = await prepare_text(item, translator, normalizer)
+    text_normalized, used_fallback = await prepare_text(item, translator, normalizer)
     results, failed_models = manager.predict_all(text_normalized)
     return CompareResponse(
         results=[CompareResult(**result) for result in results],
         failed_models=failed_models,
+        text_analyzed=text_normalized,
+        used_fallback=used_fallback,
     )
 
 

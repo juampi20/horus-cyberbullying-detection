@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import pandas as pd
@@ -14,6 +15,7 @@ from consensus import (
 )
 from constants import (
     EXAMPLES,
+    RUN_COOLDOWN_SECONDS,
     UNCERTAINTY_MARGIN,
     WEIGHT_AMPLIFICATION,
 )
@@ -42,9 +44,20 @@ def render_classification_input() -> tuple[str, bool]:
             st.session_state["text_input"] = EXAMPLES[example_idx]
             st.session_state["example_index"] = (example_idx + 1) % len(EXAMPLES)
 
+    last_snapshot = st.session_state.get("classification_snapshot")
+    used_fallback_last = bool(last_snapshot and last_snapshot.get("used_fallback"))
+
     with st.form("Clasificacion de Texto"):
         input_text: str = st.text_area("Ingresar texto a clasificar:", key="text_input")
-        run_button: bool = st.form_submit_button("Ejecutar")
+        run_col, warn_col = st.columns([4, 1])
+        run_button: bool = run_col.form_submit_button("Clasificar", type="primary")
+        if used_fallback_last:
+            warn_col.markdown(
+                '<div style="font-size:1.3rem; margin-top:0.45rem; text-align:center;" '
+                'title="Ultimo analisis con traduccion de respaldo (Google/MyMemory)">'
+                "&#9888;&#65039;</div>",
+                unsafe_allow_html=True,
+            )
     return input_text, run_button
 
 
@@ -135,6 +148,21 @@ def render_classification_results(snapshot: dict[str, Any], models_df: pd.DataFr
             "Tiempo (ms)": st.column_config.NumberColumn("Tiempo", format="%.1f ms"),
         },
     )
+
+    st.markdown('<div style="height:4px;"></div>', unsafe_allow_html=True)
+    text_analyzed = snapshot.get("text_analyzed") or ""
+    with st.expander("Ver que texto analizaron los modelos"):
+        st.markdown(f"**Original:** `{snapshot['input_text']}`")
+        if text_analyzed:
+            st.markdown(
+                f"**Traducido y normalizado (lo que recibio cada modelo):** `{text_analyzed}`"
+            )
+            if snapshot.get("used_fallback"):
+                st.caption("Traduccion de respaldo (Google/MyMemory): calidad variable.")
+            else:
+                st.caption("Traduccion de DeepL.")
+        else:
+            st.caption("La API no devolvio el texto analizado.")
 
 
 def render_guide(models_df: pd.DataFrame) -> None:
@@ -230,55 +258,77 @@ def main() -> None:
 
     st.session_state.setdefault("example_index", 0)
     st.session_state.setdefault("classification_snapshot", None)
+    st.session_state.setdefault("last_run_time", 0.0)
 
     input_text, run_button = render_classification_input()
 
     if run_button:
-        if input_text.strip() == "":
-            st.error("Error: El texto ingresado esta vacio.")
-            st.stop()
-        with st.spinner(text="Obteniendo resultados..."):
-            try:
-                response = apicall.compare_text(input_text)
-            except Exception as e:
-                st.error(f"Error: {e}")
+        now = time.monotonic()
+        elapsed_since_last_run = now - st.session_state["last_run_time"]
+        if elapsed_since_last_run < RUN_COOLDOWN_SECONDS:
+            st.warning(
+                f"Espera {RUN_COOLDOWN_SECONDS - elapsed_since_last_run:.1f}s "
+                f"entre analisis para no saturar el traductor."
+            )
+        else:
+            st.session_state["last_run_time"] = now
+            if input_text.strip() == "":
+                st.error("Error: El texto ingresado esta vacio.")
+                st.stop()
+            with st.spinner(text="Obteniendo resultados..."):
+                try:
+                    response = apicall.compare_text(input_text)
+                except Exception as e:
+                    message = str(e)
+                    if "Translation service" in message:
+                        st.error(
+                            "Los traductores externos (Google/MyMemory) estan "
+                            "caidos o saturados ahora mismo. Intenta de nuevo en "
+                            "unos minutos."
+                        )
+                    elif "timed out" in message:
+                        st.error("El servidor tardo demasiado en responder. Intenta de nuevo.")
+                    else:
+                        st.error(f"Error: {message}")
+                    st.stop()
+
+            results = response.get("results") or []
+            if not results:
+                st.error("Error: No se obtuvo respuesta del servidor")
                 st.stop()
 
-        results = response.get("results") or []
-        if not results:
-            st.error("Error: No se obtuvo respuesta del servidor")
-            st.stop()
+            display_name_by_snake = {to_snake_case(name): name for name in models_df.index}
 
-        display_name_by_snake = {to_snake_case(name): name for name in models_df.index}
+            failed_models = response.get("failed_models") or []
+            failed_display_names = [
+                display_name_by_snake.get(name, name)
+                for name in failed_models
+                if name not in {result["model"] for result in results}
+            ]
 
-        failed_models = response.get("failed_models") or []
-        failed_display_names = [
-            display_name_by_snake.get(name, name)
-            for name in failed_models
-            if name not in {result["model"] for result in results}
-        ]
+            weights = f1_weights(
+                {to_snake_case(name): float(f1) for name, f1 in models_df["f1"].items()}
+            )
+            weighted_score, majority, agreement_pct = compute_weighted_consensus(results, weights)
+            mean_time_ms = sum(result["inference_time_ms"] for result in results) / len(results)
+            model_names = [
+                display_name_by_snake.get(result["model"], result["model"]) for result in results
+            ]
 
-        weights = f1_weights(
-            {to_snake_case(name): float(f1) for name, f1 in models_df["f1"].items()}
-        )
-        weighted_score, majority, agreement_pct = compute_weighted_consensus(results, weights)
-        mean_time_ms = sum(result["inference_time_ms"] for result in results) / len(results)
-        model_names = [
-            display_name_by_snake.get(result["model"], result["model"]) for result in results
-        ]
-
-        st.session_state["classification_snapshot"] = {
-            "input_text": input_text,
-            "results": results,
-            "name_lookup": display_name_by_snake,
-            "failed_display_names": failed_display_names,
-            "model_options": ["Consenso ponderado"] + model_names,
-            "weighted_score": weighted_score,
-            "agreement_pct": agreement_pct,
-            "majority": majority,
-            "mean_time_ms": mean_time_ms,
-        }
-        st.session_state.pop("highlighted_model_selectbox", None)
+            st.session_state["classification_snapshot"] = {
+                "input_text": input_text,
+                "text_analyzed": response.get("text_analyzed") or "",
+                "used_fallback": bool(response.get("used_fallback")),
+                "results": results,
+                "name_lookup": display_name_by_snake,
+                "failed_display_names": failed_display_names,
+                "model_options": ["Consenso ponderado"] + model_names,
+                "weighted_score": weighted_score,
+                "agreement_pct": agreement_pct,
+                "majority": majority,
+                "mean_time_ms": mean_time_ms,
+            }
+            st.session_state.pop("highlighted_model_selectbox", None)
 
     snapshot = st.session_state.get("classification_snapshot")
     if snapshot:

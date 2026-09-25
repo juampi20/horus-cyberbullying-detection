@@ -136,13 +136,14 @@ def test_display_category_desconocida_pasa_igual() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_examples_has_12_items() -> None:
-    assert len(EXAMPLES) == 12
+def test_examples_has_9_items() -> None:
+    assert len(EXAMPLES) == 9
 
 
-def test_examples_include_uncertain_cases() -> None:
-    assert "Tenes razon en algo, pero sos un poco molesto." in EXAMPLES
+def test_examples_include_three_categories() -> None:
+    assert "Espero que te mejores pronto, cuidate mucho." in EXAMPLES
     assert "No entiendo por que te enojas tanto por todo." in EXAMPLES
+    assert "Sos un idiota, un desastre total." in EXAMPLES
 
 
 def test_examples_are_strings() -> None:

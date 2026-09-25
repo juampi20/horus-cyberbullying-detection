@@ -36,6 +36,8 @@ class ClassResponse(BaseModel):
     confidence: float
     inference_time_ms: float
     model_version: str
+    text_analyzed: str
+    used_fallback: bool
 
 
 class CompareItem(BaseModel):
@@ -60,6 +62,8 @@ class CompareResult(BaseModel):
 class CompareResponse(BaseModel):
     results: list[CompareResult]
     failed_models: list[str] = Field(default_factory=list)
+    text_analyzed: str
+    used_fallback: bool
 
 
 class HealthResponse(BaseModel):

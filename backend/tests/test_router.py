@@ -27,11 +27,20 @@ def test_predict_valid(client):
     resp = client.post(PREDICT_URL, json={"model": "xgboost", "text": "you are worthless"})
     assert resp.status_code == 200
     data = resp.json()
-    assert set(data.keys()) == {"category", "confidence", "inference_time_ms", "model_version"}
+    assert set(data.keys()) == {
+        "category",
+        "confidence",
+        "inference_time_ms",
+        "model_version",
+        "text_analyzed",
+        "used_fallback",
+    }
     assert data["category"] == "Bullying"
     assert data["confidence"] == 0.85
     assert data["inference_time_ms"] >= 0
     assert len(data["model_version"]) == 8
+    assert len(data["text_analyzed"]) > 0
+    assert data["used_fallback"] is False
 
 
 def test_predict_not_bullying(client, monkeypatch):
@@ -83,7 +92,10 @@ def test_predict_translation_timeout_503(client, monkeypatch):
 
     monkeypatch.setattr(
         "app.services.translation.translation_service",
-        TranslationService(translator_cls=SlowTranslator, timeout=0.1),
+        TranslationService(
+            translator_factories=[lambda: SlowTranslator()],
+            timeout=0.1,
+        ),
     )
 
     resp = client.post(PREDICT_URL, json={"model": "xgboost", "text": "hello"})
@@ -101,7 +113,10 @@ def test_predict_translation_unavailable_503(client, monkeypatch):
 
     monkeypatch.setattr(
         "app.services.translation.translation_service",
-        TranslationService(translator_cls=FailingTranslator, timeout=10.0),
+        TranslationService(
+            translator_factories=[lambda: FailingTranslator()],
+            timeout=10.0,
+        ),
     )
 
     resp = client.post(PREDICT_URL, json={"model": "xgboost", "text": "hello"})
@@ -114,15 +129,16 @@ def test_compare_ok(client):
     assert resp.status_code == 200
     body = resp.json()
     assert body["failed_models"] == []
+    assert len(body["text_analyzed"]) > 0
     results = body["results"]
     assert len(results) == 7
-    expected_keys = {
+    only_in_compare = (
         "model",
         "category",
         "confidence",
         "inference_time_ms",
         "model_version",
-    }
+    )
     expected_models = {
         "gradient_boosting",
         "logistic_regression",
@@ -133,7 +149,7 @@ def test_compare_ok(client):
         "xgboost",
     }
     for result in results:
-        assert set(result.keys()) == expected_keys
+        assert set(result.keys()) == set(only_in_compare)
     assert {result["model"] for result in results} == expected_models
 
 
@@ -176,7 +192,10 @@ def test_compare_translation_timeout_503(client, monkeypatch):
 
     monkeypatch.setattr(
         "app.services.translation.translation_service",
-        TranslationService(translator_cls=SlowTranslator, timeout=0.1),
+        TranslationService(
+            translator_factories=[lambda: SlowTranslator()],
+            timeout=0.1,
+        ),
     )
 
     resp = client.post(COMPARE_URL, json={"text": "hello"})
@@ -194,7 +213,10 @@ def test_compare_translation_unavailable_503(client, monkeypatch):
 
     monkeypatch.setattr(
         "app.services.translation.translation_service",
-        TranslationService(translator_cls=FailingTranslator, timeout=10.0),
+        TranslationService(
+            translator_factories=[lambda: FailingTranslator()],
+            timeout=10.0,
+        ),
     )
 
     resp = client.post(COMPARE_URL, json={"text": "hello"})

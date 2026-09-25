@@ -55,7 +55,7 @@ class ApiCalls:
             url=endpoint,
             headers=self.headers,
             data=json.dumps(payload),
-            timeout=10,
+            timeout=30,
         )
         if result.status_code != 200:
             try:
@@ -74,7 +74,7 @@ class ApiCalls:
             url=endpoint,
             headers=self.headers,
             data=json.dumps(payload),
-            timeout=10,
+            timeout=30,
         )
         if result.status_code != 200:
             try:
