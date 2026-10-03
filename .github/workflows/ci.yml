@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    name: backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
+      - name: Install Python 3.11
+        run: uv python install 3.11
+      - name: Create venv and install backend dependencies
+        run: |
+          uv venv .venv --python 3.11
+          uv pip install --python .venv -r backend/requirements.txt
+      - name: Install spaCy English model
+        run: |
+          uv pip install --python .venv "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl"
+      - name: Lint and format (ruff)
+        run: make check
+      - name: Type check (mypy)
+        run: make types
+      - name: Backend tests (pytest)
+        run: .venv/bin/python -m pytest backend/tests/ -v
+
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
+      - name: Install Python 3.11
+        run: uv python install 3.11
+      - name: Create venv and install frontend dependencies
+        run: |
+          uv venv .venv --python 3.11
+          uv pip install --python .venv -r frontend/requirements.txt
+      - name: Frontend tests (pytest)
+        run: .venv/bin/python -m pytest frontend/tests/ -v
