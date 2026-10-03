@@ -83,11 +83,11 @@ class MyMemoryWarningTranslator:
         )
 
 
-def _factory_of(translator_cls: type) -> callable:
+def _factory_of(translator_cls: type) -> TranslatorFactory:
     return lambda: translator_cls()
 
 
-def _factory_returning(text: str) -> callable:
+def _factory_returning(text: str) -> TranslatorFactory:
     class FixedResponseTranslator:
         def __init__(self, source="auto", target="en"):
             pass
